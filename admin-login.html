@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skill Hub Pro - Administrator Login</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, #0a0a12, #1a1030, #1c0a30);
+    font-family: Arial, sans-serif;
+    overflow:hidden;
+}
+body::before, body::after{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    border-radius:50%;
+    filter: blur(80px);
+    opacity:0.55;
+    z-index:0;
+}
+body::before{ background:#f59e0b; top:10%; left:10%; }
+body::after{ background:#7c3aed; bottom:10%; right:10%; }
+
+.card{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:420px;
+    padding:30px;
+    border-radius:20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 25px rgba(245,158,11,0.35);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:white;
+    animation: fadeIn 0.8s ease;
+}
+@keyframes fadeIn{ from{opacity:0; transform: translateY(20px);} to{opacity:1; transform: translateY(0);} }
+
+h3{ text-align:center; margin-bottom:6px; color:#fde68a; font-weight:bold; }
+.subtitle{ text-align:center; color:#cbd5e1; font-size:13px; margin-bottom:20px; }
+label{ color:#ddd; font-size:14px; }
+
+.form-control{
+    background: rgba(255,255,255,0.1);
+    border:none;
+    color:white;
+    border-radius:12px;
+}
+.form-control::placeholder{ color:#ccc; }
+.form-control:focus{
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 0 10px #f59e0b;
+    color:white;
+}
+
+.btn-amber{
+    background: linear-gradient(90deg,#f59e0b,#d97706);
+    color:#1a1030;
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+    transition:0.3s;
+    margin-top:10px;
+}
+.btn-amber:hover{ transform: scale(1.05); box-shadow: 0 0 15px #f59e0b; }
+
+a{ color:#fcd34d; text-decoration:none; }
+a:hover{ text-decoration:underline; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h3>🛠 Administrator Login</h3>
+<p class="subtitle">This entry point is for SkillHub staff accounts only.</p>
+
+<form id="adminLoginForm">
+    <div class="mb-3">
+        <label>Admin Email</label>
+        <input type="email" id="email" class="form-control" placeholder="Enter admin email" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+    </div>
+
+    <button id="btn" type="submit" class="btn btn-amber w-100">Login as Administrator</button>
+</form>
+
+<div class="text-center mt-3">
+    <a href="login.html">← Back to student login</a>
+</div>
+
+</div>
+
+<script type="module">
+import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, getOrCreateUserProfile } from "./assets/js/firebase.js";
+
+document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById("btn");
+    btn.innerHTML = "Checking credentials...";
+    btn.disabled = true;
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const profile = await getOrCreateUserProfile(user);
+
+        // This page only lets admins through. A student who wanders
+        // here with correct credentials still gets signed back out —
+        // the admin dashboard itself is gated the same way, but
+        // failing fast here gives a clearer message.
+        if (profile.role !== "admin") {
+            await signOut(auth);
+            alert("This account doesn't have administrator access. Use the regular student login instead.");
+            btn.innerHTML = "Login as Administrator";
+            btn.disabled = false;
+            return;
+        }
+
+        window.location.href = "admindashboard.html";
+
+    } catch (error) {
+        switch (error.code) {
+            case "auth/invalid-credential":
+                alert("Invalid email or password.");
+                break;
+            case "auth/too-many-requests":
+                alert("Too many attempts. Try again later.");
+                break;
+            default:
+                alert(error.message);
+        }
+        btn.innerHTML = "Login as Administrator";
+        btn.disabled = false;
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+rules_version = '2';
+
+// Paste this into Firebase Console -> Firestore Database -> Rules.
+// This is what actually enforces "student vs admin" server-side — the
+// admin signup code in signup.html is just a convenience gate, this is
+// the real security boundary.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // ---- Users / roles ----
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+
+      // A user can create their own profile doc (signup) but cannot
+      // set themselves to admin that way — role on create must be
+      // "student" unless an admin is doing the writing.
+      allow create: if isSignedIn() && request.auth.uid == uid &&
+        (request.resource.data.role == "student" || isAdmin());
+
+      // Once created, only admins can change role/status. Users may
+      // still update their own non-role fields (e.g. display name)
+      // by writing through an admin-reviewed flow — for simplicity
+      // here, all updates require admin, since role/status live on
+      // the same document.
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ---- Courses / Folders / Materials ----
+    match /courses/{courseId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+
+      match /folders/{folderId} {
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
+
+        match /materials/{materialId} {
+          allow read: if isSignedIn();
+          allow write: if isAdmin();
+        }
+      }
+
+      // Students can rate a course, but only their own rating doc.
+      match /ratings/{raterUid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && request.auth.uid == raterUid;
+      }
+    }
+
+    // ---- Admin-managed content libraries (Videos / PDFs / GATE) ----
+    match /library_videos/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    match /library_pdfs/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---- Per-user private data: progress, bookmarks, AI chats, resume checks ----
+    match /users/{uid}/progress/{materialId} {
+      allow read, write: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+    match /users/{uid}/bookmarks/{courseId} {
+      allow read, write: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+    }
+    match /users/{uid}/aiChats/{chatId} {
+      allow read, create: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+    match /users/{uid}/resumeChecks/{checkId} {
+      allow read, create: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // ---- Activity log: any signed-in user can log their own events;
+    //      only admins can read the full feed (used for Data Records).
+    //      A user can read their own events too (Downloads/History pages).
+    match /activity/{eventId} {
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // ---- Certificates: system-issued on 100% completion. Students can
+    //      read their own; only the owning student (via client logic) or
+    //      an admin can create one; nobody edits/deletes but admins.
+    match /certificates/{certId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

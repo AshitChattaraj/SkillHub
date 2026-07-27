@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skill Hub Pro - Signup</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, #1a0025, #2b0a3d, #3d0a5c);
+    font-family: Arial, sans-serif;
+    overflow:hidden;
+}
+
+/* floating glow circles */
+body::before, body::after{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    border-radius:50%;
+    filter: blur(80px);
+    opacity:0.6;
+    z-index:0;
+}
+
+body::before{
+    background:#a855f7;
+    top:10%;
+    left:10%;
+}
+
+body::after{
+    background:#7c3aed;
+    bottom:10%;
+    right:10%;
+}
+
+/* card */
+.card{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:420px;
+    padding:30px;
+    border-radius:20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 25px rgba(168,85,247,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:white;
+    animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform: translateY(20px);}
+    to{opacity:1; transform: translateY(0);}
+}
+
+h3{
+    text-align:center;
+    margin-bottom:20px;
+    color:#e9d5ff;
+    font-weight:bold;
+}
+
+label{
+    color:#ddd;
+    font-size:14px;
+}
+
+.form-control{
+    background: rgba(255,255,255,0.1);
+    border:none;
+    color:white;
+    border-radius:12px;
+}
+
+.form-control::placeholder{
+    color:#ccc;
+}
+
+.form-control:focus{
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 0 10px #a855f7;
+    color:white;
+}
+
+.btn-purple{
+    background: linear-gradient(90deg,#a855f7,#7c3aed);
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+    transition:0.3s;
+    margin-top:10px;
+}
+
+.btn-purple:hover{
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #a855f7;
+}
+
+a{
+    color:#d8b4fe;
+    text-decoration:none;
+}
+
+a:hover{
+    text-decoration:underline;
+}
+.google-btn{
+    border-radius:12px;
+    padding:12px;
+    font-weight:600;
+    transition:.3s;
+    background:white;
+    color:#222;
+    border:none;
+}
+
+.google-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(255,255,255,.25);
+}
+
+.google-btn img{
+    border-radius:50%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h3>📝 Create Account</h3>
+
+<form id="signupForm">
+
+    <div class="mb-3">
+        <label>Full Name</label>
+        <input type="text" id="fullName" class="form-control" placeholder="Enter name" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+        <input type="email" id="email" class="form-control" placeholder="Enter email" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Admin Access Code <span style="opacity:0.6;">(optional — leave blank for a student account)</span></label>
+        <input type="text" id="adminCode" class="form-control" placeholder="Only for administrators">
+    </div>
+
+    <button id="btn" type="submit" class="btn btn-purple w-100">Signup</button>
+
+</form>
+<!-- OR Divider -->
+<div class="d-flex align-items-center my-3">
+    <hr class="flex-grow-1 text-light">
+    <span class="mx-2 text-light">OR</span>
+    <hr class="flex-grow-1 text-light">
+</div>
+
+<!-- Google Signup Button -->
+<button id="googleSignup" type="button" class="btn btn-light w-100 d-flex align-items-center justify-content-center gap-2 google-btn">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+         width="22" height="22">
+    Continue with Google
+</button>
+<div class="text-center mt-3">
+    <a href="login.html">Already have account? Login</a>
+</div>
+
+</div>
+<script type="module">
+import {
+    createUserWithEmailAndPassword,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup,
+    sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, createUserProfile, getOrCreateUserProfile } from "./assets/js/firebase.js";
+
+const provider = new GoogleAuthProvider();
+
+provider.setCustomParameters({
+    prompt: "select_account"
+});
+
+
+// ==========================
+// Google Signup/Login
+// ==========================
+const googleBtn = document.getElementById("googleSignup");
+
+googleBtn.addEventListener("click", async () => {
+
+    try {
+
+        const result = await signInWithPopup(auth, provider);
+
+        const user = result.user;
+
+        // Google sign-in has no admin-code field, so these accounts
+        // always start as students. An existing admin can promote them
+        // later from the admin dashboard's Students section.
+        const profile = await getOrCreateUserProfile(user);
+
+        window.location.href = profile.role === "admin" ? "admindashboard.html" : "dashboard.html";
+
+    } catch (error) {
+
+        switch (error.code) {
+
+            case "auth/popup-closed-by-user":
+                alert("Google Sign-In cancelled.");
+                break;
+
+            case "auth/unauthorized-domain":
+                alert("Current domain is not authorized in Firebase.");
+                break;
+
+            default:
+                alert(error.message);
+
+        }
+
+    }
+
+});
+
+
+// ==========================
+// Email Signup
+// ==========================
+const signupForm = document.getElementById("signupForm");
+
+signupForm.addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (fullName === "") {
+        alert("Enter your full name.");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    try {
+
+        // Create User
+        const userCredential =
+            await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        // Update Profile
+        await updateProfile(userCredential.user, {
+            displayName: fullName
+        });
+
+        // Send Verification Email
+        await sendEmailVerification(userCredential.user);
+
+        // Create the Firestore role profile (student, unless the
+        // correct admin code was entered).
+        const adminCode = document.getElementById("adminCode").value;
+        const role = await createUserProfile(userCredential.user.uid, {
+            name: fullName,
+            email,
+            adminCode,
+        });
+
+        alert(
+            "Account Created Successfully!\n\n" +
+            "Verification email has been sent.\n" +
+            "Please verify your email before logging in." +
+            (role === "admin" ? "\n\nThis account has been registered as an ADMINISTRATOR." : "")
+        );
+
+        signupForm.reset();
+
+        window.location.href = "login.html";
+
+    } catch (error) {
+
+        switch (error.code) {
+
+            case "auth/email-already-in-use":
+                alert("This email is already registered.");
+                break;
+
+            case "auth/invalid-email":
+                alert("Invalid email address.");
+                break;
+
+            case "auth/weak-password":
+                alert("Password should be at least 6 characters.");
+                break;
+
+            case "auth/operation-not-allowed":
+                alert("Email/Password Sign-In is disabled in Firebase.");
+                break;
+
+            case "auth/network-request-failed":
+                alert("Check your internet connection.");
+                break;
+
+            default:
+                alert(error.message);
+
+        }
+
+    }
+
+});
+</script>
+
+
+</body>
+</html>
