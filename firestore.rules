@@ -12,6 +12,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
@@ -21,9 +22,9 @@ service cloud.firestore {
 
       // A user can create their own profile doc (signup) but cannot
       // set themselves to admin that way — role on create must be
-      // "student" unless an admin is doing the writing.
+      // "user" or "student" unless an admin is doing the writing.
       allow create: if isSignedIn() && request.auth.uid == uid &&
-        (request.resource.data.role == "student" || isAdmin());
+        (request.resource.data.role in ["user", "student"] || isAdmin());
 
       // Users can update their own profile fields (photo, name, academic details);
       // Only admins can alter role or status.
