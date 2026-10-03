@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile — SkillHub Pro</title>
+    <link rel="stylesheet" href="assets/css/light-theme.css">
+    <style>
+        .profile-setup-box {
+            width: 100%;
+            max-width: 620px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.12), 0 0 0 1px var(--border-light);
+            margin: 24px auto;
+        }
+
+        .avatar-uploader-wrap {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 16px;
+            background: var(--bg-subtle);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--border-light);
+            margin-bottom: 24px;
+        }
+
+        .avatar-preview-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+            background: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .uploader-content {
+            flex: 1;
+        }
+
+        .uploader-content label {
+            display: inline-block;
+            background: var(--bg-surface);
+            border: 1.5px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .uploader-content label:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .profile-setup-box {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body class="auth-wrapper">
+
+<div class="profile-setup-box">
+    <div class="auth-header">
+        <span class="brand-badge">🎓 Step 1 of 1 &bull; Student Onboarding</span>
+        <h1 class="auth-title">Complete Your Profile</h1>
+        <p class="auth-subtitle">Please fill in your academic details to access courses, track your progress, and unlock all SkillHub features.</p>
+    </div>
+
+    <form id="profileSetupForm">
+        <!-- Photo Upload -->
+        <div class="avatar-uploader-wrap" id="avatarUploaderBox" style="border: 2px dashed #6366f1;">
+            <img id="avatarPreview" class="avatar-preview-circle" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile Preview">
+            <div class="uploader-content">
+                <div style="font-size: 14px; font-weight: 700; margin-bottom: 4px; display:flex; align-items:center; gap:6px;">
+                    <span>Student Profile Photo *</span>
+                    <span style="font-size:11px; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:99px; font-weight:700;">Mandatory for Courses</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Upload a clear personal photo (PNG, JPG, or WEBP). Required to unlock course content.</div>
+                <label for="photoFile" style="cursor:pointer; background:var(--primary); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:600; font-size:13px; display:inline-block;">📸 Choose Profile Photo</label>
+                <input type="file" id="photoFile" accept="image/*" style="display: none;">
+                <div id="photoStatusText" style="font-size: 12px; font-weight: 700; color: #ef4444; margin-top: 8px;">⚠️ Profile photo required before course lectures can be accessed</div>
+            </div>
+        </div>
+
+        <!-- Full Name & Email -->
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="fullName">Full Name *</label>
+                <input type="text" id="fullName" class="form-control-light" placeholder="e.g. Rahul Sharma" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="regNo">Registration / Roll No. *</label>
+                <input type="text" id="regNo" class="form-control-light" placeholder="e.g. 2023CS1084" required>
+            </div>
+        </div>
+
+        <!-- Branch & Year -->
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="branch">Branch / Specialization *</label>
+                <select id="branch" class="form-control-light" required>
+                    <option value="">Select Branch</option>
+                    <option value="Computer Science (CSE)">Computer Science (CSE)</option>
+                    <option value="Information Technology (IT)">Information Technology (IT)</option>
+                    <option value="Electronics & Comm. (ECE)">Electronics & Comm. (ECE)</option>
+                    <option value="Electrical Engineering (EE)">Electrical Engineering (EE)</option>
+                    <option value="Mechanical Engineering (ME)">Mechanical Engineering (ME)</option>
+                    <option value="Civil Engineering (CE)">Civil Engineering (CE)</option>
+                    <option value="Data Science & AI (DA)">Data Science & AI (DA)</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="year">Year of Study *</label>
+                <select id="year" class="form-control-light" required>
+                    <option value="">Select Year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Semester & Mobile -->
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label" for="semester">Current Semester *</label>
+                <select id="semester" class="form-control-light" required>
+                    <option value="">Select Semester</option>
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                    <option value="Semester 3">Semester 3</option>
+                    <option value="Semester 4">Semester 4</option>
+                    <option value="Semester 5">Semester 5</option>
+                    <option value="Semester 6">Semester 6</option>
+                    <option value="Semester 7">Semester 7</option>
+                    <option value="Semester 8">Semester 8</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="mobile">Mobile Number *</label>
+                <input type="tel" id="mobile" class="form-control-light" placeholder="e.g. 9876543210" pattern="[0-9]{10}" title="Please enter 10 digits" required>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button type="submit" id="saveProfileBtn" class="btn-primary-gradient">Complete Setup &amp; Enter Dashboard &rarr;</button>
+        </div>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="#" id="logoutLink" style="font-size: 13px; color: var(--text-muted); text-decoration: none;">Sign in with a different account (Logout)</a>
+    </div>
+</div>
+
+<script type="module">
+import { requireAuth, doLogout } from "./assets/js/firebase.js";
+import { apiUpdateUserProfile, apiUploadProfilePhoto } from "./assets/js/user-api.js";
+
+let selectedFile = null;
+let currentUploadedPhotoUrl = "";
+
+// Image preview handler
+document.getElementById("photoFile").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            document.getElementById("avatarPreview").src = evt.target.result;
+            const statusEl = document.getElementById("photoStatusText");
+            if (statusEl) {
+                statusEl.innerHTML = `✅ Photo chosen: <b>${file.name}</b> (will be uploaded on submission)`;
+                statusEl.style.color = "#16a34a";
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Logout handler
+document.getElementById("logoutLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    doLogout("login.html");
+});
+
+// Auth Guard: ensure user is signed in
+requireAuth((user, profile) => {
+    // If user already has profile completed and a valid photo, redirect to dashboard
+    const hasPhoto = profile.photoUrl && !profile.photoUrl.includes("flaticon.com");
+    if (profile && profile.profileCompleted === true && hasPhoto) {
+        window.location.href = "dashboard.html";
+        return;
+    }
+
+    // Pre-populate known fields
+    if (profile.name || user.displayName) {
+        document.getElementById("fullName").value = profile.name || user.displayName;
+    }
+    if (profile.regNo) document.getElementById("regNo").value = profile.regNo;
+    if (profile.branch) document.getElementById("branch").value = profile.branch;
+    if (profile.year) document.getElementById("year").value = profile.year;
+    if (profile.semester) document.getElementById("semester").value = profile.semester;
+    if (profile.phone) document.getElementById("mobile").value = profile.phone;
+    if (profile.photoUrl) {
+        let pUrl = profile.photoUrl;
+        if (pUrl.startsWith("/uploads/")) pUrl = "http://localhost:5000" + pUrl;
+        document.getElementById("avatarPreview").src = pUrl;
+        currentUploadedPhotoUrl = pUrl;
+        if (!pUrl.includes("flaticon.com")) {
+            const statusEl = document.getElementById("photoStatusText");
+            if (statusEl) {
+                statusEl.innerHTML = "✅ Existing photo on file";
+                statusEl.style.color = "#16a34a";
+            }
+        }
+    }
+}, { checkProfileCompletion: false });
+
+// Form submission
+document.getElementById("profileSetupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("saveProfileBtn");
+
+    // Strictly enforce profile photo
+    const hasValidPhoto = selectedFile || (currentUploadedPhotoUrl && !currentUploadedPhotoUrl.includes("flaticon.com"));
+    if (!hasValidPhoto) {
+        alert("Student Profile Photo is mandatory! Please upload a clear photo of yourself to unlock course access.");
+        const box = document.getElementById("avatarUploaderBox");
+        if (box) {
+            box.scrollIntoView({ behavior: "smooth", block: "center" });
+            box.style.borderColor = "#ef4444";
+        }
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Saving your profile...";
+
+    try {
+        // Upload photo if a new file was chosen
+        if (selectedFile) {
+            btn.textContent = "Uploading profile photo...";
+            const photoResult = await apiUploadProfilePhoto(selectedFile);
+            if (photoResult && photoResult.photoUrl) {
+                currentUploadedPhotoUrl = photoResult.photoUrl;
+            }
+        }
+
+        const fullName = document.getElementById("fullName").value.trim();
+        const regNo = document.getElementById("regNo").value.trim();
+        const branch = document.getElementById("branch").value;
+        const year = document.getElementById("year").value;
+        const semester = document.getElementById("semester").value;
+        const phone = document.getElementById("mobile").value.trim();
+
+        btn.textContent = "Updating profile records...";
+        await apiUpdateUserProfile({
+            name: fullName,
+            regNo: regNo,
+            branch: branch,
+            year: year,
+            semester: semester,
+            phone: phone,
+            photoUrl: currentUploadedPhotoUrl,
+            profileCompleted: true
+        });
+
+        btn.textContent = "Success! Redirecting...";
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 500);
+    } catch (err) {
+        alert("Failed to save profile: " + err.message);
+        btn.disabled = false;
+        btn.textContent = "Complete Setup & Enter Dashboard →";
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "skillhub-admin-panel",
+  "version": "2.0.0",
+  "description": "SkillHub Administrator Panel SaaS Frontend Application",
+  "scripts": {
+    "dev": "python serve.py",
+    "start": "python serve.py"
+  },
+  "keywords": ["skillhub", "admin", "saas-dashboard"],
+  "author": "SkillHub Team",
+  "license": "ISC"
+}

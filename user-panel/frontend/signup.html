@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Student Account — SkillHub Pro</title>
+    <link rel="stylesheet" href="assets/css/light-theme.css">
+</head>
+<body class="auth-wrapper">
+
+<div class="auth-card">
+    <div class="auth-header">
+        <span class="brand-badge">🎓 Student Portal</span>
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Join SkillHub Pro to access courses and AI tutoring</p>
+    </div>
+
+    <form id="signupForm">
+        <div class="form-group">
+            <label class="form-label" for="fullName">Full Name</label>
+            <input type="text" id="fullName" class="form-control-light" placeholder="Rahul Sharma" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input type="email" id="email" class="form-control-light" placeholder="student@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" class="form-control-light" placeholder="At least 6 characters" minlength="6" required>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button type="submit" id="signupBtn" class="btn-primary-gradient">Create Account</button>
+        </div>
+    </form>
+
+    <div class="divider">or continue with</div>
+
+    <button type="button" id="googleSignup" class="btn-outline-light">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
+        Continue with Google
+    </button>
+
+    <div style="text-align: center; margin-top: 24px; font-size: 13.5px; color: var(--text-muted);">
+        Already have an account? 
+        <a href="login.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign In</a>
+    </div>
+</div>
+
+<script type="module">
+import { 
+    createUserWithEmailAndPassword, 
+    updateProfile,
+    signInWithPopup, 
+    GoogleAuthProvider,
+    signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, createUserProfile, getOrCreateUserProfile } from "./assets/js/firebase.js";
+
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
+
+// Email Signup
+const signupForm = document.getElementById("signupForm");
+signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("signupBtn");
+    btn.disabled = true;
+    btn.textContent = "Creating account...";
+
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: fullName });
+
+        // Initializes user doc with profileCompleted = false
+        await createUserProfile(userCredential.user.uid, {
+            name: fullName,
+            email: email,
+        });
+
+        // Direct user to Profile Setup page immediately
+        window.location.href = "profile-setup.html";
+    } catch (error) {
+        btn.disabled = false;
+        btn.textContent = "Create Account";
+        switch (error.code) {
+            case "auth/email-already-in-use":
+                alert("This email is already registered. Please sign in.");
+                break;
+            case "auth/invalid-email":
+                alert("Please enter a valid email address.");
+                break;
+            case "auth/weak-password":
+                alert("Password should be at least 6 characters.");
+                break;
+            default:
+                alert(error.message);
+        }
+    }
+});
+
+// Google Signup
+const googleBtn = document.getElementById("googleSignup");
+googleBtn.addEventListener("click", async () => {
+    googleBtn.disabled = true;
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const profile = await getOrCreateUserProfile(user);
+
+        if (profile.role === "admin") {
+            await signOut(auth);
+            alert("This account is an Administrator. Please use the Admin Portal.");
+            googleBtn.disabled = false;
+            return;
+        }
+
+        // Check if profileCompleted is true and photo is uploaded
+        const hasPhoto = Boolean(profile.photoUrl && !profile.photoUrl.includes("flaticon.com"));
+        if (profile.profileCompleted === false || !hasPhoto) {
+            window.location.href = "profile-setup.html";
+        } else {
+            window.location.href = "dashboard.html";
+        }
+    } catch (error) {
+        googleBtn.disabled = false;
+        if (error.code !== "auth/popup-closed-by-user") {
+            alert(error.message);
+        }
+    }
+});
+</script>
+
+</body>
+</html>

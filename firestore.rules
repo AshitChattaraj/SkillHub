@@ -1,9 +1,8 @@
 rules_version = '2';
 
 // Paste this into Firebase Console -> Firestore Database -> Rules.
-// This is what actually enforces "student vs admin" server-side — the
-// admin signup code in signup.html is just a convenience gate, this is
-// the real security boundary.
+// This is what enforces "student vs admin" server-side. User signup cannot
+// create an admin profile; administrators are provisioned separately.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -26,14 +25,20 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == uid &&
         (request.resource.data.role == "student" || isAdmin());
 
-      // Once created, only admins can change role/status. Users may
-      // still update their own non-role fields (e.g. display name)
-      // by writing through an admin-reviewed flow — for simplicity
-      // here, all updates require admin, since role/status live on
-      // the same document.
-      allow update: if isAdmin();
+      // Users can update their own profile fields (photo, name, academic details);
+      // Only admins can alter role or status.
+      allow update: if isSignedIn() && (
+        (request.auth.uid == uid && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']) || resource.data.role == request.resource.data.role))
+        || isAdmin()
+      );
 
       allow delete: if isAdmin();
+    }
+
+    // ---- Official Admin Announcements / Notifications ----
+    match /announcements/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     // ---- Courses / Folders / Materials ----

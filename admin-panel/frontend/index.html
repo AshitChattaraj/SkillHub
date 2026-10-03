@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillHub Pro — Administrator Portal</title>
+    <link rel="stylesheet" href="assets/css/admin-light.css">
+    <style>
+        .portal-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 10% 10%, #eef2ff 0%, #f8fafc 80%);
+            padding: 24px;
+        }
+        .portal-card {
+            width: 100%;
+            max-width: 540px;
+            background: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 44px 36px;
+            text-align: center;
+            box-shadow: 0 20px 45px -10px rgba(99, 102, 241, 0.12), 0 0 0 1px var(--border-color);
+        }
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            margin-bottom: 20px;
+        }
+        .portal-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            margin: 0 0 12px 0;
+        }
+        .portal-subtitle {
+            font-size: 14.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin: 0 0 32px 0;
+        }
+        .portal-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-portal-primary {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 14px;
+            color: #ffffff;
+            background: var(--primary-gradient);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            transition: all 0.2s ease;
+        }
+        .btn-portal-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+        .btn-portal-secondary {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-portal-secondary:hover {
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="portal-wrapper">
+
+<div class="portal-card">
+    <div style="font-size: 48px; margin-bottom: 12px;">🛡️</div>
+    <span class="portal-badge">Staff &amp; Executive Access</span>
+    <h1 class="portal-title">SkillHub Admin Portal</h1>
+    <p class="portal-subtitle">Manage registered students, courses, video/PDF libraries, GATE resources, and platform analytics with centralized role-based controls.</p>
+    <div class="portal-actions">
+        <a href="admin-login.html" class="btn-portal-primary">Sign in to Admin Dashboard &rarr;</a>
+        <a href="../../user-panel/frontend/index.html" id="userSiteLink" class="btn-portal-secondary">Visit Student Portal</a>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const userLink = document.getElementById("userSiteLink");
+        if (userLink && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+            userLink.href = "http://localhost:5001";
+        }
+    })();
+</script>
+
+</body>
+</html>

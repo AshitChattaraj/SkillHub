@@ -6,5 +6,15 @@ venv/
 .env
 *.log
 serviceAccountKey.json
+
+# Local Uploads
 uploads/videos/*
 !uploads/videos/.gitkeep
+backend/uploads/videos/*
+!backend/uploads/videos/.gitkeep
+backend/uploads/photos/*
+!backend/uploads/photos/.gitkeep
+*.mp4
+*.mkv
+*.avi
+*.mov

@@ -1,201 +1,172 @@
-# SkillHub — Setup Guide
+# SkillHub Architecture & Deployment Guide
 
-This project uses **Firebase** (Authentication + Firestore) for accounts, roles,
-and course content, and a **tiny Node/Express server** for exactly one job:
-proxying AI Tutor requests to Gemini so your API key never sits in the browser.
+SkillHub Pro is organized into two specialized frontend applications connected to a single unified backend and shared Firebase Firestore database.
 
-## What changed in this update
+## 🚀 Live GitHub Pages Deployment
 
-1. **Admin panel is now actually connected to real accounts, with a separate login.**
-   - Everyone signs up through `signup.html` (or Google). New accounts get a
-     `role: "student"` profile in Firestore automatically.
-   - To create an **admin** account, enter the Admin Access Code on the signup
-     form (default: `SKILLHUB-ADMIN-2026` — **change this**, see below).
-   - Admins sign in at the separate `admin-login.html` page (linked from the
-     bottom of the regular login page). That page checks the account's role
-     and refuses non-admins.
-   - `admindashboard.html` now requires you to be signed in **and** have the
-     admin role — previously it had no login check at all.
-   - Real enforcement lives in `firestore.rules`, not just the frontend code.
+The project is configured for automated deployment via GitHub Pages and GitHub Actions:
 
-2. **AI Tutor now has voice, and is built into the main dashboard.**
-   - In Student Dashboard → "🤖 AI Help": type a question or tap 🎙 to speak
-     it. Replies are read aloud (toggle with the 🔊 button).
-   - Requests go through the new `server.js` `/api/ask` route, which calls
-     Gemini using a key stored server-side in `.env`.
-   - **Security note:** the previous version of `dashboard.html` had a live
-     Gemini key hardcoded in the page's JavaScript, visible to anyone who
-     viewed the page source. Treat that old key as leaked — rotate/delete it
-     in Google AI Studio if you haven't already. It is not used anywhere in
-     this update.
+* **Platform Gateway (Hub)**: `https://ashitchattaraj.github.io/SkillHub/`
+* **Student Learning Portal**: `https://ashitchattaraj.github.io/SkillHub/user-panel/frontend/index.html`
+* **Administrator SaaS Portal**: `https://ashitchattaraj.github.io/SkillHub/admin-panel/frontend/index.html`
 
-3. **Courses → Folders → Materials.**
-   - Clicking a course on the student dashboard opens its **folders**
-     (e.g. Notes, Videos, or anything custom you add).
-   - Clicking a folder shows the **materials** inside it — notes, YouTube
-     videos (auto-embedded), links, or PDF/file links.
-   - From the admin dashboard, Courses → "Manage Content" lets you add
-     folders (two defaults — Notes and Videos — are created automatically
-     the first time you open a course) and add materials to any folder.
-   - All of this is stored in Firestore: `courses/{id}/folders/{id}/materials/{id}`.
+Both portals connect to the live Cloud Firestore database (`skill-hub-df744`) directly from the browser, allowing full student registration, course browsing, and admin user/course management without needing a separate hosted Python server.
 
-4. **Course thumbnails, YouTube/PW-style cards.**
-   - When adding a course, paste an image URL as the thumbnail. Course
-     cards on both the student and admin side show a real 16:9 thumbnail
-     (like YouTube/PW course cards) instead of a giant emoji tile — if no
-     thumbnail is set, it falls back to the category emoji.
+### Enabling GitHub Pages in Repository Settings:
+1. Navigate to your repository: `https://github.com/AshitChattaraj/SkillHub/settings/pages`
+2. Under **Build and deployment** > **Source**:
+   - Select **GitHub Actions** (recommended, uses the included `.github/workflows/deploy.yml` workflow)
+   - *OR* select **Deploy from a branch** -> Branch: `main` -> Folder: `/ (root)`.
+3. Within 1-2 minutes, your site will be live at `https://ashitchattaraj.github.io/SkillHub/`!
 
-5. **Real progress tracking + real completion graphs (not fake numbers).**
-   - Every material has a "Mark complete" checkbox. Checking it writes to
-     `users/{uid}/progress/{materialId}` in Firestore.
-   - The student **Progress** tab shows a real overall-completion donut
-     and a real per-course breakdown, computed from that data — not
-     hardcoded percentages.
-   - Course cards show a real "% complete" badge once you've started them.
-   - The admin **Overview** tab shows real totals (students, published
-     courses, AI questions asked, resume checks run) and a real
-     "completion by course" chart, averaged across every student who has
-     touched that course.
-   - Completing 100% of a course's materials automatically issues a
-     certificate (visible in the student's Certificates tab, downloadable
-     as a PDF).
+---
 
-6. **Video Library / PDF Library / GATE resource management (admin).**
-   - New admin sidebar entry: **🎬 Library (Video/PDF/GATE)**, with three
-     tabs:
-     - **Videos** — add a title + YouTube URL (+ optional thumbnail),
-       tag it "General" or "GATE". Shows up in the student Video Library.
-     - **PDFs** — add a title + file URL, a tag (PYQs, Mock Tests, Formula
-       Sheet, Revision Notes, Book List, Roadmap, Notes), and section
-       (General/GATE). Shows up in the student PDF Library.
-     - **GATE Resources** — a filtered view of the PDF tab (section =
-       "GATE") — these are exactly what populate the GATE page's resource
-       cards on the student side (previously those 4 cards were just
-       static, non-functional text; now they're real, admin-managed,
-       downloadable resources).
-   - On first load, the PDF library auto-seeds itself with the 6 real
-     PDF files that already ship in `/pdfs`, tagged as GATE resources, so
-     nothing that used to work is lost.
 
-7. **AI Resume Checker with a real ATS-style score.**
-   - New student tab: **🧾 Resume Checker**. Paste resume text, click
-     "Check My Resume", and the server (`/api/resume-check`, using the
-     same Gemini key as the AI Tutor) returns a 0–100 score, a summary,
-     strengths, weaknesses, and concrete suggestions.
-   - Each check is saved to `users/{uid}/resumeChecks` and counted in the
-     admin Data Records screen.
-
-8. **Real activity records + PDF/CSV exports.**
-   - Every download, video watched, AI question asked, resume check, and
-     completed material is logged to a Firestore `activity` collection.
-   - Student side: **Downloads** tab shows a real history of what you've
-     opened; **AI Help** has a "⬇ Download Chat as PDF" button that
-     exports your actual conversation.
-   - Admin side: new **🗂 Data Records** tab lists every student with real
-     counts (AI questions asked, resume checks run, certificates earned)
-     and two export buttons — **CSV** (all students) and **PDF** (a
-     platform summary report, also available from Overview). The
-     **Activity Logs** and **Certificate Management** tabs now show real
-     data instead of placeholder rows too.
-
-## What's still a placeholder (be upfront about this)
-To keep scope sane, a few admin screens were **not** rewired this round
-and still show illustrative/static numbers: **Analytics** (category
-enrollment %, revenue target), **Reports** (moderation queue), and
-**Instructors** (the instructor-accounts table). None of these were part
-of this update's requested feature set — flag it if you want them made
-real next, since a couple (e.g. revenue) would need a payments
-integration to be genuinely real rather than just "read from Firestore."
-
-## One-time setup
-
-### 1. Firebase Console
-The project already points at a Firebase project (`skill-hub-df744`) via
-`assets/js/firebase.js`. If that's your project:
-- **Authentication** → Sign-in method → enable **Email/Password** and
-  **Google**.
-- **Firestore Database** → create a database (production mode is fine).
-- **Firestore Database → Rules** → paste the contents of `firestore.rules`
-  from this project and publish.
-
-If it's *not* your project, replace the `firebaseConfig` object in
-`assets/js/firebase.js` with your own (Project settings → your web app).
-
-### 2. Change the admin signup code
-Open `assets/js/firebase.js` and change:
-```js
-export const ADMIN_SIGNUP_CODE = "SKILLHUB-ADMIN-2026";
+```text
+SkillHub_build/
+│
+├── user-panel/              # Independently deployable Student Application
+│   ├── frontend/
+│   │   ├── index.html       # Landing page (Modern clean light theme)
+│   │   ├── login.html       # Student sign-in
+│   │   ├── signup.html      # Student registration (Initializes profileCompleted = false)
+│   │   ├── profile-setup.html # Mandatory student onboarding profile setup
+│   │   ├── dashboard.html   # Student dashboard (Courses, AI Tutor, Progress, Profile)
+│   │   ├── assets/          # Light CSS, JavaScript client modules, images
+│   │   └── pdfs/            # Study materials & GATE notes
+│   ├── serve.py             # Local dev runner (Port 5001)
+│   └── package.json
+│
+├── admin-panel/             # Independently deployable Administrator SaaS Application
+│   ├── frontend/
+│   │   ├── index.html       # Administrator portal home
+│   │   ├── admin-login.html # Admin-only authentication gate
+│   │   ├── admindashboard.html # SaaS dashboard with 9-column user table & modal
+│   │   ├── assets/          # SaaS Light CSS, JavaScript client modules
+│   │   └── uploads/         # Admin uploaded materials
+│   ├── serve.py             # Local dev runner (Port 5002)
+│   └── package.json
+│
+└── backend/                 # Shared Backend REST API & Database Integration
+    ├── app.py               # Main Flask API server (Port 5000)
+    ├── database.py          # Firebase Admin SDK & Firestore client initialization
+    ├── auth_middleware.py   # RBAC decorators (require_auth, require_admin, require_user)
+    ├── routes/
+    │   ├── auth_routes.py   # POST /api/auth/signup, /api/auth/login, /api/auth/logout
+    │   ├── user_routes.py   # GET/PUT /api/user/profile, POST /api/user/profile-photo, /api/ask
+    │   └── admin_routes.py  # GET/PUT/DELETE /api/admin/users, courses, and video uploads
+    ├── uploads/             # Profile avatars and uploaded videos
+    ├── requirements.txt     # Python dependencies
+    └── .env                 # Environment config (CORS origins, ports, keys)
 ```
-to your own secret. Only share it with people who should get admin access.
-This is a convenience gate on signup — `firestore.rules` is what actually
-stops a student from granting themselves the admin role afterward.
 
-### 3. Create your first admin account
-Go to `signup.html`, fill in the form, and put your new code in the
-"Admin Access Code" field. That account can now sign in at
-`admin-login.html`. (Every admin account after that can also be created the
-same way, or you can promote a student manually by editing their `users/{uid}`
-document in the Firestore console and setting `role: "admin"`.)
+---
 
-### 4. Run the server
+## 1. Quick Start (Local Development)
+
+### Start the Shared Backend (Port 5000)
 ```bash
-npm install
-cp .env.example .env
-# edit .env and set GEMINI_API_KEY=your_key   (get one at aistudio.google.com)
-npm start
+# In the workspace root
+.\.venv\Scripts\Activate.ps1
+python backend/app.py
 ```
-Then open **http://localhost:5000** (not `file://...` — the AI Tutor calls
-`/api/ask` on the same origin, so the site needs to be served, not opened
-directly as a file).
+Backend runs on **http://localhost:5000**. Health check: **http://localhost:5000/api/health**.
 
-Without a `GEMINI_API_KEY` set, everything else works — the AI Tutor will
-just reply with a message asking an admin to configure it.
-
-## Adding your first courses
-1. Log in as admin → Courses → **+ Add Course** → fill in title/category/
-   instructor/hours → Save as Draft.
-2. Click **Publish** on the course card so students can see it.
-3. Click **Manage Content** → open the **Notes** or **Videos** folder (or
-   add your own, e.g. "Assignments") → use the form to add materials.
-   - For videos, paste a YouTube link — it's embedded automatically on the
-     student side.
-4. Students will see it under Dashboard → Courses.
-
-## Project structure
+### Start the User Panel (Port 5001)
+Open a separate terminal:
+```bash
+python user-panel/serve.py
 ```
-index.html              Landing page
-login.html               Student/admin login (routes by role after sign-in)
-admin-login.html          Separate admin-only login
-signup.html                Account creation (+ optional admin code)
-dashboard.html            Student dashboard (courses, AI tutor, DSA tracker, etc.)
-admindashboard.html      Admin dashboard (students, courses, content manager)
-assets/js/firebase.js      Shared Firebase config + auth/role helpers
-assets/js/courses.js       Firestore CRUD: courses → folders → materials
-assets/js/library.js       Firestore CRUD: Video Library / PDF Library / GATE resources
-assets/js/data.js          Progress, activity log, bookmarks, certificates, ratings, AI chat + resume history
-assets/js/ai-tutor.js      Voice-enabled AI tutor client logic
-assets/js/resume-checker.js Resume Checker client logic
-assets/js/pdf-export.js    jsPDF wrappers: chat transcripts, certificates, admin reports
-server.js                 Static file server + /api/ask and /api/resume-check Gemini proxies
-firestore.rules           Firestore security rules (paste into Firebase console)
-legacy-unused/             Old, disconnected Flask backend + duplicate pages
-                          kept for reference only — nothing in the live site
-                          links to this folder.
+Student panel runs on **http://localhost:5001**.
+
+### Start the Admin Panel (Port 5002)
+Open a third terminal:
+```bash
+python admin-panel/serve.py
+```
+Administrator panel runs on **http://localhost:5002**.
+
+---
+
+## 2. Shared Backend & Data Synchronization Flow
+
+Both frontends point to the **same backend API** and **same Firestore database**:
+
+```text
+User Panel (Port 5001)             Admin Panel (Port 5002)
+        │                                    ▲
+        │ HTTPS REST                         │ HTTPS REST
+        ▼                                    │
+┌────────────────────────────────────────────────────────┐
+│               Shared Backend (Port 5000)               │
+│  - Authentication & RBAC Enforcement                  │
+│  - Student Profile APIs (/api/user/profile)            │
+│  - Admin Management APIs (/api/admin/users)            │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+             ┌───────────────────────────┐
+             │ Firestore Shared Database │
+             │ Collection: "users"       │
+             │ Collection: "courses"     │
+             └───────────────────────────┘
 ```
 
-## Notes / known limitations
-- PDF exports (chat history, certificates, admin reports) use jsPDF loaded
-  from a CDN (`cdnjs.cloudflare.com`) — no extra npm install needed, but
-  it does mean those buttons need internet access to work.
-- Deleting a course from the admin dashboard removes the course document but
-  not its `folders`/`materials` subcollections (Firestore doesn't cascade
-  deletes). Harmless — they just become unreachable — but for a fully clean
-  delete you'd want a Cloud Function.
-- "Block" on a student sets their Firestore status to `blocked` and signs
-  them out on next load; it doesn't disable their Firebase Auth account
-  directly (that requires the Firebase Admin SDK / a Cloud Function, which
-  needs a server you deploy — out of scope for this static + tiny-proxy
-  setup).
-- The dashboard's stats (progress %, revenue, engagement charts, etc.) are
-  still placeholder numbers — wiring those to real data would be a good
-  next step once you have real usage.
+### User Onboarding Flow
+1. **Student Signs Up**: `user-panel/frontend/signup.html` calls `createUserProfile()` creating user in Firestore with `profileCompleted: false` and `role: "user"`.
+2. **Mandatory Profile Setup**: User is immediately redirected to `profile-setup.html`. Access to `dashboard.html` is blocked until profile completion.
+3. **Save Profile**: Student submits photo, registration number, branch, year, semester, and mobile number. Backend validates and sets `profileCompleted: true`.
+4. **Instant Admin Sync**: The user is immediately visible in the Admin Panel table with all academic fields, photo, and completion status.
+
+---
+
+## 3. Clean REST API Specification
+
+### Authentication APIs
+* `POST /api/auth/signup` — Create user account (`role="user"`, `profileCompleted=false`).
+* `POST /api/auth/login` — Sign in with email and password via Firebase REST API.
+* `POST /api/auth/logout` — Invalidate session.
+* `GET /api/auth/me` — Return current authenticated user profile.
+
+### Student / User APIs
+* `GET /api/user/profile` — Fetch current user's profile details.
+* `PUT /api/user/profile` — Update name, regNo, branch, year, semester, mobile. Sets `profileCompleted=true` once filled.
+* `POST /api/user/profile-photo` — Secure multipart image upload for profile avatar.
+* `GET /api/courses` — List published courses.
+* `POST /api/ask` — AI Tutor query proxy to Gemini.
+
+### Administrator APIs (Requires `role="admin"`, non-admins receive `403 Forbidden`)
+* `GET /api/admin/users` — List all registered users (supports `search`, `branch`, `year`, `semester`, `status` query filters).
+* `GET /api/admin/users/<id>` — Return complete user profile details.
+* `PUT /api/admin/users/<id>` — Admin update user details, role, or status.
+* `DELETE /api/admin/users/<id>` — Delete user account from Firestore and Firebase Auth.
+* `POST /api/admin/users/<id>/block` — Toggle active / blocked account status.
+* `GET /api/admin/courses` — List all courses (draft & published).
+* `POST /api/admin/courses` — Create a new course.
+* `PATCH /api/admin/courses/<id>` — Update course.
+* `DELETE /api/admin/courses/<id>` — Delete course.
+* `POST /api/admin/videos/upload` — Multipart video file upload.
+
+---
+
+## 4. Admin User Table (Requirement 9)
+
+The Admin Dashboard provides the 9-column user table:
+
+| Photo | Name | Registration No. | Branch | Year | Semester | Mobile | Status | Action |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Avatar | Rahul Sharma | 2023CS1084 | CSE | 2nd Year | Sem 3 | 9876543210 | Active / Complete | **View Details**, Edit, Block, Delete |
+
+* Clicking **View Details** opens an interactive profile sheet showing full user information, registration details, profile completion status, and account creation date.
+
+---
+
+## 5. Modern Professional Light Theme
+
+Both panels have been upgraded from the dark palette to modern light styling:
+* **Background**: Clean `#F8FAFC`
+* **Cards & Surfaces**: Pure White `#FFFFFF` with borders `#E2E8F0` and subtle elevation shadows.
+* **Primary Accent**: Indigo/Purple (`#6366F1` / `#7C3AED`)
+* **Typography**: Plus Jakarta Sans & Inter
+* **User Panel**: Student portal card layout with high-contrast text and smooth micro-interactions.
+* **Admin Panel**: Professional SaaS layout with white sidebar, status badges, multi-filters, and clean tables.

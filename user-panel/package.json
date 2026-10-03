@@ -1,0 +1,12 @@
+{
+  "name": "skillhub-user-panel",
+  "version": "2.0.0",
+  "description": "SkillHub Student & User Panel Frontend Application",
+  "scripts": {
+    "dev": "python serve.py",
+    "start": "python serve.py"
+  },
+  "keywords": ["skillhub", "student", "learning-platform"],
+  "author": "SkillHub Team",
+  "license": "ISC"
+}

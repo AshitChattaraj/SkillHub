@@ -1,0 +1,2573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Hub Pro - Admin Dashboard</title>
+
+<style>
+/* CSS VARIABLES FOR EASY THEME TOGGLE (kept identical to student panel for consistency) */
+:root {
+    --bg-gradient: #f8fafc;
+    --text-color: #0f172a;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --accent-color: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-light: #eef2ff;
+    --sidebar-bg: #ffffff;
+    --subtle-bg: #f1f5f9;
+    --text-muted: #64748b;
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+    --warn-color: #f59e0b;
+    --info-color: #3b82f6;
+    --shadow-card: 0 4px 20px -2px rgba(99, 102, 241, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+    --bg-gradient: radial-gradient(circle at top, #1a0025, #0b0014, #000);
+    --text-color: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.08);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #a855f7;
+    --sidebar-bg: rgba(255, 255, 255, 0.05);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    display: flex;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    overflow: auto;
+    box-sizing: border-box;
+    z-index: 100;
+    border-right: 1px solid var(--border-color);
+}
+
+.sidebar h2 { margin-bottom: 4px; }
+.sidebar .role-tag { font-size: 12px; opacity: 0.6; margin: 0 0 15px 0; }
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    color: #475569;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar a:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.sidebar a.active-link {
+    background: #eef2ff;
+    color: #6366f1;
+    font-weight: 700;
+}
+
+.sidebar a.logout-link {
+    color: #ef4444;
+    margin-top: 20px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.sidebar a.logout-link:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateX(5px);
+}
+
+/* MAIN CONTENT AREA */
+.main {
+    margin-left: 280px;
+    padding: 20px;
+    width: calc(100% - 280px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.header-search {
+    flex: 1;
+    max-width: 380px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    outline: none;
+}
+
+.header-right { display: flex; align-items: center; gap: 15px; }
+
+.bell-btn {
+    position: relative;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px;
+}
+.bell-dot {
+    position: absolute; top: 6px; right: 8px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--danger-color); border: 2px solid #0b0014;
+}
+
+.profile-trigger {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--accent-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 2px solid white;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.5);
+    overflow: hidden; transition: transform 0.2s;
+}
+.profile-trigger:hover { transform: scale(1.1); }
+.profile-trigger img { width: 100%; height: 100%; object-fit: cover; }
+
+/* SECTIONS */
+.section { display: none; animation: fade 0.4s ease; flex: 1; }
+.active { display: block !important; }
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+.section-head h1 { margin: 0; }
+.section-head p { opacity: 0.8; margin: 5px 0 0 0; }
+
+/* WELCOME BANNER */
+.welcome-banner {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(124, 58, 237, 0.1));
+    padding: 35px; border-radius: 20px; margin-bottom: 30px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+}
+.welcome-banner h1 { margin: 0 0 10px 0; font-size: 32px; color: #fff; text-shadow: 0 2px 10px rgba(168, 85, 247, 0.5); }
+.welcome-banner p { margin: 0; font-size: 16px; opacity: 0.9; }
+.welcome-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* DASH GRID / STAT CARDS (shared visual language w/ student panel) */
+.dash-grid, .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+
+.dash-card {
+    background: var(--card-bg); padding: 25px; border-radius: 20px;
+    border: 1px solid var(--border-color); transition: 0.4s;
+    display: flex; align-items: center; gap: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.dash-card:hover {
+    transform: translateY(-8px);
+    background: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 15px 30px rgba(168, 85, 247, 0.2);
+}
+.dash-icon { font-size: 40px; background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 15px; }
+.dash-info h3 { margin: 0; font-size: 26px; color: #c084fc; }
+.dash-info p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.8; }
+.trend { font-size: 12px; font-weight: bold; margin-top: 6px; }
+.trend.up { color: var(--success-color); }
+.trend.down { color: var(--danger-color); }
+
+/* CHARTS */
+.charts-flex { display: flex; gap: 25px; flex-wrap: wrap; margin-top: 0; }
+.chart-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 20px; padding: 25px; flex: 1; min-width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.chart-card h3 { margin: 0 0 20px 0; font-size: 20px; color: #c084fc; }
+
+.donut-container { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+.donut-chart {
+    width: 160px; height: 160px; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.donut-center {
+    width: 120px; height: 120px; background: #11001c; border-radius: 50%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 22px;
+}
+[data-theme="light"] .donut-center { background: #ffffff; }
+.donut-center span { font-size: 12px; opacity: 0.6; font-weight: normal; }
+
+.chart-list-item { margin: 15px 0; }
+.chart-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; opacity: 0.9; }
+.progress { height: 10px; background: #333; border-radius: 20px; overflow: hidden; margin: 6px 0; position: relative; }
+.progress span { display: block; height: 100%; background: var(--accent-color); width: 0; transition: width 1.2s ease-out; }
+
+/* BAR CHART (pure css) */
+.bar-chart { display: flex; align-items: flex-end; gap: 14px; height: 180px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bar-fill { width: 100%; max-width: 34px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, #c084fc, #7c3aed); transition: height 1.2s ease-out; }
+.bar-label { font-size: 12px; opacity: 0.75; margin-top: 8px; }
+
+/* TOOLBAR / FILTERS */
+.toolbar { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+.toolbar input, .toolbar select {
+    padding: 13px 16px; border: 1px solid var(--border-color); border-radius: 12px;
+    background: var(--card-bg); color: var(--text-color); outline: none; font-size: 14px;
+}
+.toolbar input { flex: 2; min-width: 200px; }
+.toolbar select { flex: 1; min-width: 140px; cursor: pointer; }
+select option { background: #1a0025; color: white; }
+
+.btn {
+    padding: 13px 20px; border: none;
+    background: linear-gradient(90deg, #a855f7, #7c3aed);
+    color: white; border-radius: 12px; cursor: pointer; font-weight: bold; transition: .3s;
+    white-space: nowrap;
+}
+.btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.btn.outline { background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); }
+.btn.danger { background: var(--danger-color); }
+.btn.small { padding: 8px 14px; font-size: 13px; }
+
+/* DATA TABLE */
+.table-wrap { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; }
+table.data-table { width: 100%; border-collapse: collapse; }
+table.data-table th, table.data-table td {
+    padding: 14px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-color);
+}
+table.data-table th { opacity: 0.7; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+table.data-table tbody tr { transition: 0.2s; }
+table.data-table tbody tr:hover { background: rgba(168, 85, 247, 0.1); }
+table.data-table tbody tr:last-child td { border-bottom: none; }
+
+.person-cell { display: flex; align-items: center; gap: 10px; }
+.avatar-sm { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color); }
+
+.status-pill { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+.status-active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.status-pending { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+.status-blocked { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.status-draft { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+
+.row-actions { display: flex; gap: 8px; }
+.icon-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+.icon-btn:hover { background: rgba(168, 85, 247, 0.2); border-color: var(--accent-color); }
+.icon-btn.del:hover { background: rgba(239, 68, 68, 0.2); border-color: var(--danger-color); }
+
+.pagination { display: flex; justify-content: flex-end; gap: 8px; padding: 15px 16px; }
+.page-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color); cursor: pointer; font-size: 13px;
+}
+.page-btn.active-page { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+/* COURSE MANAGE CARDS */
+.course-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 300px)); justify-content: start; gap: 22px; }
+
+/* PDF Library / GATE resource cards (Library Manager) */
+.pdf-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 320px)); justify-content: start; gap: 22px; }
+.pdf-doc-card {
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px;
+    padding: 22px; display: flex; flex-direction: column; gap: 12px; transition: 0.3s;
+}
+.pdf-doc-card:hover { transform: translateY(-4px); border-color: rgba(168, 85, 247, 0.45); }
+.pdf-doc-top { display: flex; align-items: flex-start; gap: 12px; }
+.pdf-doc-icon { font-size: 26px; background: rgba(168, 85, 247, 0.18); color: #c084fc; padding: 12px; border-radius: 12px; flex-shrink: 0; }
+.pdf-doc-info h3 { margin: 0 0 4px 0; font-size: 15px; line-height: 1.3; }
+.pdf-doc-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.pdf-doc-tag { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.pdf-doc-size { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(255,255,255,0.08); opacity: 0.85; }
+.pdf-doc-desc { font-size: 13px; opacity: 0.85; line-height: 1.45; }
+.pdf-doc-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pdf-doc-btn { flex: 1; text-align: center; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; border: none; }
+.pdf-doc-btn.view { background: rgba(255,255,255,0.1); color: var(--text-color); border: 1px solid var(--border-color); }
+.pdf-doc-btn.download { background: var(--accent-color); color: #fff; }
+.course-card { background: var(--card-bg); border-radius: 18px; overflow: hidden; border: 1px solid var(--border-color); transition: .3s; box-shadow: 0 5px 15px rgba(0,0,0,.3); }
+.course-card:hover { transform: translateY(-6px); }
+.course-image { height: 140px; background: linear-gradient(135deg, #7c3aed, #9333ea); display: flex; align-items: center; justify-content: center; font-size: 55px; position: relative; }
+.course-status-badge { position: absolute; top: 12px; right: 12px; }
+.course-content { padding: 20px; }
+.badge { display: inline-block; padding: 6px 12px; background: #9333ea; border-radius: 20px; font-size: 12px; margin-bottom: 12px; color: white; }
+.course-title { font-size: 20px; margin: 0 0 8px 0; }
+.course-meta { display: flex; justify-content: space-between; font-size: 13px; opacity: 0.8; margin-bottom: 12px; }
+.course-buttons { display: flex; gap: 8px; }
+.course-buttons button { flex: 1; padding: 10px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; transition: .3s; font-size: 13px; }
+
+/* MODAL */
+.modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+    background: #1a0025; border: 1px solid var(--border-color); border-radius: 20px;
+    padding: 30px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+[data-theme="light"] .modal-box { background: #ffffff; }
+.modal-box h3 { margin-top: 0; }
+.modal-box .form-row { display: flex; flex-direction: column; gap: 12px; margin: 15px 0; }
+.modal-box input, .modal-box select, .modal-box textarea {
+    padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color); outline: none; font-family: inherit;
+}
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+/* ANNOUNCEMENT / NOTIFICATION MANAGER */
+.noti-card, .log-card {
+    background: var(--card-bg); padding: 18px 20px; margin: 12px 0; border-radius: 15px;
+    border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;
+}
+.noti-left { display: flex; gap: 14px; align-items: flex-start; }
+.noti-icon { font-size: 24px; }
+.noti-text b { display: block; margin-bottom: 3px; }
+.noti-text span { font-size: 13px; opacity: 0.6; }
+
+.compose-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px; padding: 25px; margin-bottom: 25px; }
+.compose-box textarea { width: 100%; min-height: 90px; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); outline: none; font-family: inherit; resize: vertical; margin: 12px 0; }
+.compose-box input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); outline: none; }
+
+/* SETTINGS */
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
+.setting-row:last-child { border-bottom: none; }
+.setting-info h3 { margin: 0 0 5px 0; font-size: 18px; }
+.setting-info p { margin: 0; font-size: 14px; opacity: 0.7; }
+
+.toggle-switch { position: relative; width: 52px; height: 28px; display: inline-block; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 30px; transition: .3s; }
+.toggle-slider:before { content: ""; position: absolute; height: 20px; width: 20px; left: 4px; bottom: 4px; background: white; border-radius: 50%; transition: .3s; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.toggle-switch input:checked + .toggle-slider { background: #4f46e5; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+.card { background: var(--card-bg); padding: 20px; border-radius: 18px; border: 1px solid var(--border-color); }
+
+footer { margin-top: auto; padding: 20px; text-align: center; opacity: 0.5; font-size: 14px; border-top: 1px solid var(--border-color); }
+
+@media(max-width:768px) {
+  body { display: block; overflow-x: hidden; }
+  .main { margin-left: 0; width: 100%; padding: 14px; }
+  .sidebar { position: relative; height: auto; width: 100%; padding: 14px; }
+  .sidebar h2 { font-size: 20px; }
+  .sidebar a { padding: 11px 12px; }
+  .header-nav { flex-wrap: wrap; padding: 4px 0 14px; margin-bottom: 10px; }
+  .header-search { order: 2; flex-basis: 100%; max-width: none; }
+  .header-right { margin-left: auto; }
+  .welcome-banner { padding: 24px 18px; margin-bottom: 20px; }
+  .welcome-banner h1 { font-size: 25px; line-height: 1.2; }
+  .welcome-banner p { font-size: 14px; }
+  .dash-grid, .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dash-card { padding: 18px; gap: 14px; }
+  .dash-icon { font-size: 32px; padding: 10px; }
+  .dash-info h3 { font-size: 23px; }
+  .charts-flex { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .chart-card { min-width: 0; padding: 18px; }
+    .toolbar { flex-direction: column; }
+  .toolbar input, .toolbar select { min-width: 0; width: 100%; }
+  .compose-box { padding: 18px; }
+  .modal-overlay { padding: 12px; }
+  .modal-box { padding: 20px; }
+  table.data-table { display: block; overflow-x: auto; white-space: nowrap; font-size: 12px; }
+  table.data-table th, table.data-table td { padding: 9px 7px; }
+}
+</style>
+<!-- PROFESSIONAL LIGHT THEME OVERRIDE -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme-light.css">
+</head>
+<body>
+
+<div class="sidebar">
+<h2>🛡 Admin Panel</h2>
+<p class="role-tag" id="adminRoleTag">Signed in as Admin</p>
+<a href="#" class="nav-link active-link" data-target="dash">📊 Overview</a>
+<a href="#" class="nav-link" data-target="students">🎓 Students</a>
+<a href="#" class="nav-link" data-target="instructors">👨‍🏫 Instructors</a>
+<a href="#" class="nav-link" data-target="courses">📚 Courses</a>
+<a href="#" class="nav-link" data-target="library">🎬 Library (Video/PDF/GATE)</a>
+<a href="#" class="nav-link" data-target="data-records">🗂 Data Records</a>
+<a href="#" class="nav-link" data-target="analytics">📈 Analytics</a>
+<a href="#" class="nav-link" data-target="announcements">📣 Announcements</a>
+<a href="#" class="nav-link" data-target="reports">🚩 Reports</a>
+<a href="#" class="nav-link" data-target="logs">🧾 Activity Logs</a>
+<a href="#" class="nav-link" data-target="settings">⚙ Settings</a>
+<a href="admin-login.html" id="adminLogoutLink" class="logout-link">🚪 Logout</a>
+</div>
+
+<div class="main">
+
+    <div class="header-nav">
+        <input type="text" class="header-search" placeholder="🔍 Search students, courses, instructors...">
+        <div class="header-right">
+            <div class="bell-btn" title="Notifications"><span class="bell-dot"></span>🔔</div>
+            <div class="profile-trigger" title="Admin Profile">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Admin">
+            </div>
+        </div>
+    </div>
+
+<!-- OVERVIEW -->
+<div id="dash" class="section active">
+    <div class="welcome-banner">
+        <div>
+            <h1>Welcome back, Admin 👋</h1>
+            <p>Here's what's happening across SkillHub today.</p>
+        </div>
+        <div class="welcome-actions">
+            <button class="btn" onclick="openModal('modalAddCourse')">+ Add Course</button>
+            <button class="btn outline" onclick="openModal('modalAddInstructor')">+ Add Instructor</button>
+        </div>
+    </div>
+
+    <div class="dash-grid" id="overviewStatsGrid">
+        <div class="dash-card"><div class="dash-icon">🎓</div><div class="dash-info"><h3>—</h3><p>Total Students</p></div></div>
+        <div class="dash-card"><div class="dash-icon">📚</div><div class="dash-info"><h3>—</h3><p>Published Courses</p></div></div>
+        <div class="dash-card"><div class="dash-icon">🤖</div><div class="dash-info"><h3>—</h3><p>AI Questions Asked</p></div></div>
+    </div>
+
+    <div class="charts-flex">
+        <div class="chart-card" style="max-width: 340px;">
+            <h3>Average Course Completion</h3>
+            <div class="donut-container" id="overviewDonutWrap">
+                <div class="donut-chart" style="background: conic-gradient(#a855f7 0% 0%, rgba(255,255,255,0.1) 0% 100%);">
+                    <div class="donut-center" id="overviewDonutCenter">—<span>Avg.</span></div>
+                </div>
+            </div>
+            <p style="text-align:center; font-size:14px; opacity:0.8;" id="overviewDonutCaption">Across all published courses with student activity.</p>
+        </div>
+
+        <div class="chart-card">
+            <h3>Completion by Course</h3>
+            <div id="overviewCourseBars" style="display:flex; flex-direction:column; gap:10px;">
+                <p style="opacity:0.7;">Loading...</p>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:16px; text-align:right;">
+        <button class="btn outline" id="exportReportBtn">⬇ Export Platform Report (PDF)</button>
+    </div>
+</div>
+
+<!-- STUDENTS / USERS -->
+<div id="students" class="section">
+    <div class="section-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h1 style="margin:0 0 4px 0; font-size:24px; font-weight:800; color:var(--text-main);">🎓 Registered Users &amp; Students</h1>
+            <p style="margin:0; color:var(--text-muted); font-size:14px;">Centralized user table synchronized with shared database, profile completion tracking, and account management</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn outline" id="refreshUsersBtn" title="Fetch latest data from Shared Backend">🔄 Refresh</button>
+            <button class="btn" onclick="openModal('modalAddStudent')">+ Add Student</button>
+        </div>
+    </div>
+
+    <!-- Multi-Filter Toolbar -->
+    <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:#ffffff; padding:16px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:18px; box-shadow:var(--shadow-card);">
+        <input type="text" id="studentSearch" placeholder="🔍 Search name, email, reg no, mobile..." style="flex:2; min-width:220px; padding:10px 14px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:13.5px;">
+        
+        <select id="filterBranch" style="flex:1; min-width:140px; padding:10px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:13px; background:#fff; color:#334155;">
+            <option value="all">All Branches</option>
+            <option value="Computer Science (CSE)">CSE</option>
+            <option value="Information Technology (IT)">IT</option>
+            <option value="Electronics & Comm. (ECE)">ECE</option>
+            <option value="Electrical Engineering (EE)">EE</option>
+            <option value="Mechanical Engineering (ME)">ME</option>
+            <option value="Civil Engineering (CE)">CE</option>
+            <option value="Data Science & AI (DA)">Data Science (DA)</option>
+        </select>
+
+        <select id="filterYear" style="flex:1; min-width:110px; padding:10px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:13px; background:#fff; color:#334155;">
+            <option value="all">All Years</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+        </select>
+
+        <select id="filterSemester" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:13px; background:#fff; color:#334155;">
+            <option value="all">All Semesters</option>
+            <option value="Semester 1">Sem 1</option>
+            <option value="Semester 2">Sem 2</option>
+            <option value="Semester 3">Sem 3</option>
+            <option value="Semester 4">Sem 4</option>
+            <option value="Semester 5">Sem 5</option>
+            <option value="Semester 6">Sem 6</option>
+            <option value="Semester 7">Sem 7</option>
+            <option value="Semester 8">Sem 8</option>
+        </select>
+
+        <select id="studentStatus" style="flex:1; min-width:130px; padding:10px; border-radius:8px; border:1px solid #cbd5e1; outline:none; font-size:13px; background:#fff; color:#334155;">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="blocked">Blocked</option>
+            <option value="completed">Profile Complete</option>
+            <option value="incomplete">Profile Incomplete</option>
+        </select>
+    </div>
+
+    <!-- 9-Column Admin User Table -->
+    <div class="table-wrap" style="background:#ffffff; border-radius:12px; border:1px solid #e2e8f0; overflow-x:auto; box-shadow:var(--shadow-card);">
+        <table class="data-table" id="studentsTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:13.5px;">
+            <thead>
+                <tr style="background:#f1f5f9; border-bottom:1px solid #e2e8f0; color:#475569; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">
+                    <th style="padding:12px 14px; width:56px;">Photo</th>
+                    <th style="padding:12px 14px;">Name</th>
+                    <th style="padding:12px 14px;">Registration No.</th>
+                    <th style="padding:12px 14px;">Branch</th>
+                    <th style="padding:12px 14px;">Year</th>
+                    <th style="padding:12px 14px;">Semester</th>
+                    <th style="padding:12px 14px;">Mobile</th>
+                    <th style="padding:12px 14px;">Status</th>
+                    <th style="padding:12px 14px; text-align:center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+                <tr><td colspan="9" style="text-align:center; padding:30px; color:#64748b;">Loading registered users from database...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- INSTRUCTORS -->
+<div id="instructors" class="section">
+    <div class="section-head">
+        <div><h1>👨‍🏫 Manage Instructors</h1><p>Approve, edit, or remove instructor accounts</p></div>
+        <button class="btn" onclick="openModal('modalAddInstructor')">+ Add Instructor</button>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="instSearch" placeholder="Search instructors..." onkeyup="filterTable('instTable', 'instSearch', null)">
+    </div>
+
+    <div class="table-wrap">
+        <table class="data-table" id="instTable">
+            <thead><tr><th>Instructor</th><th>Email</th><th>Courses</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="instructorsTableBody">
+                <tr><td colspan="6" style="opacity:0.7;">Loading instructors...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- COURSES -->
+<div id="courses" class="section">
+    <div class="section-head">
+        <div><h1>📚 Manage Courses</h1><p>Publish, edit, or archive courses across the platform</p></div>
+        <button class="btn" onclick="openModal('modalAddCourse')">+ Add Course</button>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="courseSearch" placeholder="Search courses..." onkeyup="filterCourses()">
+        <select id="courseCat" onchange="filterCourses()">
+            <option value="all">All Categories</option>
+            <option value="Programming">Programming</option>
+            <option value="AI">Artificial Intelligence</option>
+            <option value="Web">Web Development</option>
+        </select>
+    </div>
+
+    <div class="course-cards" id="courseCardWrap">
+        <p style="opacity:0.7;">Loading courses...</p>
+    </div>
+</div>
+
+<!-- COURSE CONTENT MANAGER: folders + materials for one course -->
+<div id="content-manager" class="section">
+    <div class="section-head">
+        <div><h1 id="contentManagerTitle">🗂 Manage Content</h1><p>Add folders (Notes, Videos, or your own custom folders) and drop materials into them.</p></div>
+        <button class="btn outline" onclick="showAdminSection('courses')">← Back to Courses</button>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="newFolderName" placeholder="New folder name (e.g. Assignments, Week 1)...">
+        <button class="btn" id="addFolderBtn">+ Add Folder</button>
+    </div>
+
+    <div class="course-cards" id="adminFolderWrap">
+        <p style="opacity:0.7;">Loading folders...</p>
+    </div>
+</div>
+
+<!-- FOLDER CONTENT MANAGER: subfolders + materials for one folder (Drive-style nesting) -->
+<div id="folder-manager" class="section">
+    <div class="section-head">
+        <div><h1 id="folderManagerTitle">📁 Folder</h1><p>Notes, videos and links visible to every student enrolled in this course.</p></div>
+        <button class="btn outline" id="backToContentManagerBtn">← Back to Folders</button>
+    </div>
+
+    <div id="folderBreadcrumb" style="margin-bottom:14px; opacity:0.8; font-size:0.9rem;"></div>
+
+    <div class="toolbar">
+        <input type="text" id="newSubfolderName" placeholder="New subfolder name (e.g. Week 1, Assignments)...">
+        <button class="btn outline" id="addSubfolderBtn">+ New Folder</button>
+    </div>
+
+    <div class="course-cards" id="adminSubfolderWrap" style="margin-bottom:20px;"></div>
+
+    <div class="card" style="margin-bottom:20px;">
+        <h3 style="margin-top:0;">+ Add Material</h3>
+        <div class="form-row" style="flex-direction:row; flex-wrap:wrap;">
+            <input type="text" id="matTitle" placeholder="Title (e.g. 'Lecture 1: Arrays')" style="flex:2; min-width:200px;">
+            <select id="matType" style="flex:1; min-width:160px;">
+                <option value="note">📝 Note / Text</option>
+                <option value="video">🎥 Video (YouTube link)</option>
+                <option value="link">🔗 Link</option>
+                <option value="pdf">📄 PDF / File link</option>
+            </select>
+            <input type="text" id="matUrl" placeholder="URL (video/link/PDF) — optional for plain notes" style="flex:2; min-width:220px;">
+        </div>
+        <textarea id="matDesc" style="width:100%; margin-top:10px; min-height:70px; background: rgba(255,255,255,0.08); border:1px solid var(--border-color); border-radius:10px; color:inherit; padding:10px; font-family:inherit;" placeholder="Description or note content..."></textarea>
+        <button class="btn" id="addMaterialBtn" style="margin-top:10px;">+ Add Material</button>
+    </div>
+
+    <div id="adminMaterialWrap" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px;">
+        <p style="opacity:0.7;">Loading materials...</p>
+    </div>
+</div>
+
+<!-- LIBRARY MANAGER: Videos / PDFs / GATE resources -->
+<div id="library" class="section">
+    <div class="section-head"><div><h1>🎬 Library Manager</h1><p>Manage the Video Library, PDF Library, and GATE resource cards students see.</p></div></div>
+
+    <div class="toolbar" style="margin-bottom:8px;">
+        <button class="btn small" id="libTabVideos">🎥 Videos</button>
+        <button class="btn small outline" id="libTabPdfs">📄 PDFs</button>
+        <button class="btn small outline" id="libTabGate">🎓 GATE Resources</button>
+    </div>
+
+    <!-- Videos pane -->
+    <div id="libPaneVideos">
+        <div class="card" style="margin-bottom:20px;">
+            <h3 style="margin-top:0;">+ Add Video</h3>
+            <div class="toolbar" style="margin-bottom:8px;">
+                <button type="button" class="btn small" id="vidSourceUploadBtn">⬆️ Upload File</button>
+                <button type="button" class="btn small outline" id="vidSourceYoutubeBtn">▶️ YouTube Link</button>
+            </div>
+
+            <!-- Real drag & drop upload (default) -->
+            <div id="vidUploadPane">
+                <div id="vidDropZone" style="border:2px dashed var(--border-color); border-radius:12px; padding:28px; text-align:center; cursor:pointer; transition:0.2s;">
+                    <div style="font-size:2rem;">🎬</div>
+                    <p style="margin:8px 0 4px;"><b>Drag & drop a video here</b>, or click to browse</p>
+                    <p style="opacity:0.6; font-size:0.85rem;">MP4, WebM, OGG, MOV, MKV — up to 500MB. Stored on this server, plays fully offline once loaded on a device.</p>
+                    <input type="file" id="vidFileInput" accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-matroska" style="display:none;">
+                </div>
+                <div id="vidFileChosen" style="margin-top:10px; display:none; opacity:0.85;"></div>
+                <div id="vidUploadProgressWrap" style="display:none; margin-top:10px;">
+                    <div style="height:8px; border-radius:6px; background:rgba(255,255,255,0.1); overflow:hidden;">
+                        <div id="vidUploadProgressBar" style="height:100%; width:0%; background:var(--accent-color,#7c5cff); transition:width 0.15s;"></div>
+                    </div>
+                    <p id="vidUploadProgressText" style="font-size:0.8rem; opacity:0.7; margin:4px 0 0;">0%</p>
+                </div>
+            </div>
+
+            <!-- Legacy YouTube-link path, kept as an option -->
+            <div id="vidYoutubePane" style="display:none;">
+                <input type="text" id="vidUrl" placeholder="YouTube URL" style="width:100%; margin-top:4px;">
+                <input type="text" id="vidThumb" placeholder="Thumbnail URL (optional)" style="width:100%; margin-top:10px;">
+            </div>
+
+            <div class="form-row" style="flex-direction:row; flex-wrap:wrap; margin-top:14px;">
+                <input type="text" id="vidTitle" placeholder="Title" style="flex:2; min-width:200px;">
+                <select id="vidSection" style="flex:1; min-width:140px;"><option value="General">General</option><option value="GATE">GATE</option></select>
+                <input type="text" id="vidBranch" placeholder="Branch (optional, e.g. CSE)" style="flex:1; min-width:160px;">
+            </div>
+            <textarea id="vidDesc" style="width:100%; margin-top:10px; min-height:50px; background: rgba(255,255,255,0.08); border:1px solid var(--border-color); border-radius:10px; color:inherit; padding:10px; font-family:inherit;" placeholder="Short description (optional)"></textarea>
+            <button class="btn" id="addVideoBtn" style="margin-top:10px;">+ Add Video</button>
+            <p id="vidError" style="color:#ff6b6b; margin-top:8px; display:none;"></p>
+        </div>
+        <div class="course-cards" id="adminVideoGrid"><p style="opacity:0.7;">Loading videos...</p></div>
+    </div>
+
+    <!-- PDFs pane -->
+    <div id="libPanePdfs" style="display:none;">
+        <div class="card" style="margin-bottom:20px;">
+            <h3 style="margin-top:0;">+ Add PDF</h3>
+            <div class="form-row" style="flex-direction:row; flex-wrap:wrap;">
+                <input type="text" id="pdfTitle" placeholder="Title" style="flex:2; min-width:200px;">
+                <input type="text" id="pdfUrl" placeholder="File URL (e.g. pdfs/yourfile.pdf or Drive link)" style="flex:2; min-width:200px;">
+                <select id="pdfSection" style="flex:1; min-width:140px;"><option value="General">General</option><option value="GATE">GATE</option></select>
+                <select id="pdfTag" style="flex:1; min-width:160px;">
+                    <option>Notes</option><option>PYQs</option><option>Mock Tests</option>
+                    <option>Formula Sheet</option><option>Revision Notes</option>
+                    <option>Book List</option><option>Roadmap</option>
+                </select>
+                <input type="text" id="pdfSize" placeholder="Size label (optional, e.g. 482 KB)" style="flex:1; min-width:160px;">
+            </div>
+            <textarea id="pdfDesc" style="width:100%; margin-top:10px; min-height:50px; background: rgba(255,255,255,0.08); border:1px solid var(--border-color); border-radius:10px; color:inherit; padding:10px; font-family:inherit;" placeholder="Short description (optional)"></textarea>
+            <button class="btn" id="addPdfBtn" style="margin-top:10px;">+ Add PDF</button>
+        </div>
+        <div class="pdf-lib-grid" id="adminPdfGrid"><p style="opacity:0.7;">Loading PDFs...</p></div>
+    </div>
+
+    <!-- GATE pane: filtered view of the PDF library, section=GATE -->
+    <div id="libPaneGate" style="display:none;">
+        <p style="opacity:0.8; margin-bottom:14px;">These are the same items as the PDF Library above, filtered to <b>GATE</b> — add them from the PDFs tab with Section = "GATE".</p>
+        <div class="pdf-lib-grid" id="adminGateGrid"><p style="opacity:0.7;">Loading...</p></div>
+    </div>
+</div>
+
+<!-- DATA RECORDS: real per-student records + exports -->
+<div id="data-records" class="section">
+    <div class="section-head">
+        <div><h1>🗂 Data Records</h1><p>A real record of platform activity — AI chats and downloads — per student.</p></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn outline" id="exportCsvBtn">⬇ Export Students (CSV)</button>
+            <button class="btn outline" id="exportRecordsPdfBtn">⬇ Export Platform Report (PDF)</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Student</th><th>Email</th><th>AI Questions</th><th>Joined</th></tr></thead>
+            <tbody id="dataRecordsBody">
+              <tr><td colspan="4" style="opacity:0.7;">Loading records...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="margin-top:28px;">Recent Activity (All Students)</h2>
+    <div id="recentActivityFeed" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+        <p style="opacity:0.7;">Loading...</p>
+    </div>
+</div>
+
+<!-- ANALYTICS -->
+<div id="analytics" class="section">
+    <div class="section-head"><div><h1>📈 Platform Analytics</h1><p>Deep dive into learning and revenue trends</p></div></div>
+
+    <div class="stats-grid">
+        <div class="dash-card"><div class="dash-icon">📊</div><div class="dash-info"><h3>62%</h3><p>Avg. Course Completion</p></div></div>
+        <div class="dash-card"><div class="dash-icon">⏱</div><div class="dash-info"><h3>38 min</h3><p>Avg. Daily Study Time</p></div></div>
+        <div class="dash-card"><div class="dash-icon">💬</div><div class="dash-info"><h3>1,204</h3><p>AI Assistant Queries Today</p></div></div>
+    </div>
+
+    <div class="charts-flex">
+        <div class="chart-card">
+            <h3>Category Enrollment Share</h3>
+            <div class="chart-list-item"><div class="chart-label"><span>Programming</span><span>38%</span></div><div class="progress"><span data-width="38%"></span></div></div>
+            <div class="chart-list-item"><div class="chart-label"><span>Artificial Intelligence</span><span>27%</span></div><div class="progress"><span data-width="27%" style="background:#3b82f6 !important;"></span></div></div>
+            <div class="chart-list-item"><div class="chart-label"><span>Web Development</span><span>22%</span></div><div class="progress"><span data-width="22%" style="background:#22c55e !important;"></span></div></div>
+            <div class="chart-list-item"><div class="chart-label"><span>Exam Preparation (GATE)</span><span>13%</span></div><div class="progress"><span data-width="13%" style="background:#eab308 !important;"></span></div></div>
+        </div>
+        <div class="chart-card" style="max-width: 340px;">
+            <h3>Revenue Target</h3>
+            <div class="donut-container">
+                <div class="donut-chart" style="background: conic-gradient(#22c55e 0% 84%, rgba(255,255,255,0.1) 84% 100%);">
+                    <div class="donut-center">84%<span>of Goal</span></div>
+                </div>
+            </div>
+            <p style="text-align:center; font-size:14px; opacity:0.8;">₹8.4L of ₹10L monthly target</p>
+        </div>
+    </div>
+</div>
+
+<!-- ANNOUNCEMENTS -->
+<div id="announcements" class="section">
+    <div class="section-head"><div><h1>📣 Announcements</h1><p>Broadcast a message to all students or a specific group</p></div></div>
+
+    <div class="compose-box">
+        <input type="text" id="annTitle" placeholder="Announcement title...">
+        <textarea id="annBody" placeholder="Write your announcement..."></textarea>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <select id="annAudience" style="padding:12px; border-radius:10px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color);">
+                <option>All Students</option>
+                <option>Active Students Only</option>
+                <option>Specific Course Enrollees</option>
+            </select>
+            <button class="btn" onclick="publishAnnouncement()">📤 Publish</button>
+        </div>
+    </div>
+
+    <div id="annList">
+        <p style="opacity:0.7; padding:12px;">Loading official announcements from database...</p>
+    </div>
+</div>
+
+<!-- REPORTS -->
+<div id="reports" class="section">
+    <div class="section-head"><div><h1>🚩 User Reports & Flags</h1><p>Content moderation and abuse reports</p></div></div>
+    <div class="log-card">
+        <div class="noti-left"><span class="noti-icon">⚠️</span><div class="noti-text"><b>Inappropriate comment reported on "AI Mastery"</b><span>Reported by 3 users • 1 day ago</span></div></div>
+        <div class="row-actions"><button class="btn small">Review</button><button class="btn danger small">Remove</button></div>
+    </div>
+    <div class="log-card">
+        <div class="noti-left"><span class="noti-icon">🐛</span><div class="noti-text"><b>Video playback bug in "Full Stack Development"</b><span>Reported by 12 users • 3 days ago</span></div></div>
+        <div class="row-actions"><button class="btn small">Review</button><button class="btn outline small">Mark Fixed</button></div>
+    </div>
+</div>
+
+<!-- ACTIVITY LOGS -->
+<div id="logs" class="section">
+    <div class="section-head"><div><h1>🧾 Activity Logs</h1><p>Real student activity across the platform (downloads, videos watched, AI questions, completions).</p></div></div>
+    <div id="adminLogsFeed" style="display:flex; flex-direction:column; gap:8px;">
+        <p style="opacity:0.7;">Loading...</p>
+    </div>
+</div>
+
+<!-- SETTINGS -->
+<!-- SETTINGS -->
+<div id="settings" class="section">
+    <div class="section-head"><div><h1>⚙ Platform &amp; Admin Settings</h1><p>Global system configuration, administrator profile, and notification settings</p></div></div>
+    
+    <!-- 1. ADMIN PROFILE & PHOTO -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+            <div style="display:flex; align-items:center; gap:18px;">
+                <div style="position:relative; width:74px; height:74px; flex-shrink:0;">
+                    <img id="adminSettingsAvatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:74px; height:74px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-color); background:var(--card-bg);" alt="Admin Avatar">
+                    <label for="adminPhotoFileInput" style="position:absolute; bottom:-2px; right:-2px; background:var(--accent-color); color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; box-shadow:0 2px 6px rgba(0,0,0,0.25);" title="Upload photo">📷</label>
+                    <input type="file" id="adminPhotoFileInput" accept="image/*" style="display:none;">
+                </div>
+                <div>
+                    <h3 id="adminProfileName" style="margin:0 0 4px 0; font-size:18px; font-weight:700;">Administrator</h3>
+                    <div id="adminProfileEmail" style="font-size:13px; color:var(--text-light, #64748b);">admin@skillhub.com</div>
+                    <span style="display:inline-block; margin-top:6px; font-size:11px; font-weight:700; background:#eef2ff; color:#4f46e5; padding:2px 8px; border-radius:6px;">Super Administrator</span>
+                </div>
+            </div>
+            <label for="adminPhotoFileInput" class="btn" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📸 Change Admin Photo</label>
+        </div>
+        <div id="adminPhotoProgress" style="display:none; font-size:12.5px; color:var(--accent-color); font-weight:600; margin-top:10px;">⏳ Updating photo in database...</div>
+    </div>
+
+    <!-- 2. ADMIN NOTIFICATIONS & ALERTS -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-color); padding-bottom:10px; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h3 style="margin:0 0 2px 0; font-size:17px; font-weight:700;">🔔 System Alerts &amp; Notification Rules</h3>
+                <p style="margin:0; font-size:13px; opacity:0.75;">Configure admin notification feeds and audit dispatches</p>
+            </div>
+            <span style="font-size:12px; font-weight:700; color:#4f46e5; background:#eef2ff; padding:4px 10px; border-radius:6px; border:1px solid #c7d2fe;">● Live Broadcast Active</span>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>New Student Signups Notification</h3><p>Alert administration immediately when a new student completes onboarding</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminNotiStudents" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Course Creation &amp; Material Uploads</h3><p>Notify when instructors add new syllabus materials or videos</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminNotiCourses" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Security Audits &amp; Block Events</h3><p>Log account suspensions, IP changes, and permission modifications</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminNotiSecurity" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Audio Chime for Admin Alerts</h3><p>Play audio feedback when new administrative alerts arrive</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminNotiSound" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+    </div>
+
+    <!-- 3. PLATFORM CONTROLS -->
+    <div class="card">
+        <h3 style="margin:0 0 14px 0; font-size:17px; font-weight:700; border-bottom:1px solid var(--border-color); padding-bottom:10px;">🛡️ Global Platform Policies</h3>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Admin Theme</h3><p>Toggle light / dark workspace visual appearance</p></div>
+            <button class="btn outline" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Student Registration Gate</h3><p>Permit new students to sign up freely</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminAllowStudentSignups" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Instructor Applications</h3><p>Allow new instructors to request portal accounts</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminAllowInstructorSignups" checked onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info"><h3>Maintenance Lockdown</h3><p>Temporarily pause student portal access for upgrades</p></div>
+            <label class="toggle-switch"><input type="checkbox" id="adminMaintenanceMode" onchange="saveAdminPrefs()"><span class="toggle-slider"></span></label>
+        </div>
+    </div>
+</div>
+
+<footer>© 2026 SkillHub Admin | Manage with care 🛡</footer>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalAddStudent">
+    <div class="modal-box">
+        <h3>➕ Add Student</h3>
+        <div class="form-row">
+            <input type="text" id="newStudentName" placeholder="Full name">
+            <input type="email" id="newStudentEmail" placeholder="Email address">
+            <input type="password" id="newStudentPassword" placeholder="Temporary password (min 6 chars)">
+            <input type="text" id="newStudentBranch" placeholder="Branch (optional, e.g. CSE)">
+        </div>
+        <p id="addStudentError" style="color:#ff6b6b; display:none;"></p>
+        <div class="modal-actions"><button class="btn outline" onclick="closeModal('modalAddStudent')">Cancel</button><button class="btn" id="addStudentBtn">Add Student</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalAddInstructor">
+    <div class="modal-box">
+        <h3>➕ Add Instructor</h3>
+        <div class="form-row">
+            <input type="text" id="newInstName" placeholder="Full name">
+            <input type="email" id="newInstEmail" placeholder="Email address">
+            <input type="password" id="newInstPassword" placeholder="Temporary password (min 6 chars)">
+            <input type="text" id="newInstExpertise" placeholder="Specialization (e.g. Web Development)">
+        </div>
+        <p id="addInstructorError" style="color:#ff6b6b; display:none;"></p>
+        <div class="modal-actions"><button class="btn outline" onclick="closeModal('modalAddInstructor')">Cancel</button><button class="btn" id="addInstructorBtn">Add Instructor</button></div>
+    </div>
+</div>
+
+<!-- USER DETAILS MODAL (View Details Action) -->
+<div class="modal-overlay" id="modalUserDetails">
+    <div class="modal-box" style="max-width: 580px; text-align: left;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <img id="detailUserAvatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:68px; height:68px; border-radius:50%; object-fit:cover; border:2px solid #e2e8f0; background:#f8fafc;" alt="Avatar">
+                <div>
+                    <h3 id="detailUserName" style="margin:0 0 4px 0; font-size:20px; color:#0f172a;">Student Name</h3>
+                    <div id="detailUserEmail" style="font-size:13.5px; color:#64748b;">student@example.com</div>
+                    <div style="margin-top:6px; display:flex; gap:8px;">
+                        <span id="detailUserStatus" class="status-pill status-active">Active</span>
+                        <span id="detailProfileCompleted" class="status-pill status-active">Completed</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="closeModal('modalUserDetails')" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:20px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; font-size:13.5px;">
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Registration No.</strong>
+                    <span id="detailRegNo" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Mobile Number</strong>
+                    <span id="detailMobile" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Branch / Specialization</strong>
+                    <span id="detailBranch" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Year of Study</strong>
+                    <span id="detailYear" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Semester</strong>
+                    <span id="detailSemester" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+                <div>
+                    <strong style="display:block; color:#64748b; font-size:11.5px; text-transform:uppercase;">Account Created Date</strong>
+                    <span id="detailCreatedAt" style="font-weight:700; color:#0f172a;">(Not Set)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <button class="btn outline" id="detailBlockBtn" style="color:#ef4444; border-color:#fecaca;">Block User</button>
+                <button class="btn outline" id="detailDeleteBtn" style="color:#ef4444; border-color:#fecaca; margin-left:8px;">Delete</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn" id="detailEditBtn">Edit Profile</button>
+                <button class="btn outline" onclick="closeModal('modalUserDetails')">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="modalEditUser">
+    <div class="modal-box" style="max-width: 540px; text-align: left;">
+        <h3>✏️ Edit Student / User Profile</h3>
+        <input type="hidden" id="editUserId">
+        <div class="form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:14px;">
+            <div style="grid-column: span 2;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Full Name</label>
+                <input type="text" id="editUserName" placeholder="Full name" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 1;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Registration No.</label>
+                <input type="text" id="editUserRegNo" placeholder="e.g. 2023CS1084" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 1;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Mobile Number</label>
+                <input type="tel" id="editUserPhone" placeholder="Mobile" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 1;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Branch</label>
+                <input type="text" id="editUserBranch" placeholder="e.g. CSE" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 1;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Year</label>
+                <input type="text" id="editUserYear" placeholder="e.g. 2nd Year" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 2;">
+                <label style="font-size:12px; font-weight:700; color:#475569;">Semester</label>
+                <input type="text" id="editUserSemester" placeholder="e.g. Semester 3" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="grid-column: span 2; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="editUserProfileCompleted" style="width:18px; height:18px;">
+                <label for="editUserProfileCompleted" style="font-size:13.5px; font-weight:600; color:#0f172a; cursor:pointer;">Mark profile as completed</label>
+            </div>
+        </div>
+        <p id="editUserError" style="color:#ef4444; display:none; margin-top:10px;"></p>
+        <div class="modal-actions" style="margin-top:18px;">
+            <button class="btn outline" onclick="closeModal('modalEditUser')">Cancel</button>
+            <button class="btn" id="saveEditUserBtn">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalAddCourse">
+    <div class="modal-box">
+        <h3>➕ Add Course</h3>
+        <div class="form-row">
+            <input type="text" id="newCourseTitle" placeholder="Course title">
+            <select id="newCourseCategory"><option value="Programming">Programming</option><option value="AI">Artificial Intelligence</option><option value="Web">Web Development</option><option value="Exam">Exam Preparation</option></select>
+            <input type="text" id="newCourseInstructor" placeholder="Instructor name">
+            <input type="number" id="newCourseHours" placeholder="Duration (hours)">
+            <input type="text" id="newCourseThumb" placeholder="Thumbnail image URL (like a YouTube/PW cover image)">
+        </div>
+        <div class="modal-actions"><button class="btn outline" onclick="closeModal('modalAddCourse')">Cancel</button><button class="btn" id="saveCourseBtn">Save & Publish</button></div>
+    </div>
+</div>
+
+<script>
+/* SPA NAVIGATION */
+function showAdminSection(targetId) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active-link'));
+    let targetSec = document.getElementById(targetId);
+    if (targetSec) {
+        targetSec.classList.add('active');
+        animateBars();
+    }
+    let navLink = document.querySelector(`.sidebar a[data-target="${targetId}"]`);
+    if (navLink) navLink.classList.add('active-link');
+    window.dispatchEvent(new CustomEvent("admin-section-changed", { detail: { section: targetId } }));
+}
+window.showAdminSection = showAdminSection;
+
+document.querySelectorAll('.sidebar a:not(.logout-link)').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        showAdminSection(this.getAttribute('data-target'));
+    });
+});
+
+/* GLOBAL SEARCH — filters all visible table rows + course cards */
+(function () {
+  const searchInput = document.querySelector('.header-search');
+  if (!searchInput) return;
+  searchInput.addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    // Filter all table rows
+    document.querySelectorAll('table.data-table tbody tr').forEach(row => {
+      row.style.display = (!q || row.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    });
+    // Filter course cards
+    document.querySelectorAll('.course-card').forEach(card => {
+      card.style.display = (!q || card.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    });
+    // Filter pdf / log / noti cards
+    document.querySelectorAll('.pdf-doc-card, .log-card, .noti-card').forEach(card => {
+      card.style.display = (!q || card.innerText.toLowerCase().includes(q)) ? '' : 'none';
+    });
+  });
+  // Clear on Escape
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { this.value = ''; this.dispatchEvent(new Event('input')); }
+  });
+})();
+
+function animateBars() {
+    document.querySelectorAll(".progress span").forEach(bar => {
+        let w = bar.getAttribute("data-width");
+        if (w) { bar.style.width = "0"; setTimeout(() => { bar.style.width = w; }, 80); }
+    });
+    document.querySelectorAll(".bar-fill").forEach(bar => {
+        let h = bar.getAttribute("data-h");
+        if (h) { bar.style.height = "0"; setTimeout(() => { bar.style.height = h; }, 80); }
+    });
+    document.querySelectorAll(".donut-chart").forEach(d => { d.style.opacity = 0; setTimeout(() => { d.style.transition = "0.6s"; d.style.opacity = 1; }, 100); });
+}
+window.onload = animateBars;
+
+/* THEME */
+function toggleDarkMode() {
+    const current = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+}
+
+/* MODALS */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('open'); });
+});
+
+/* TABLE FILTER (students / instructors) */
+function filterTable(tableId, searchId, statusId) {
+    let text = document.getElementById(searchId).value.toLowerCase();
+    let status = statusId ? document.getElementById(statusId).value : 'all';
+    document.querySelectorAll(`#${tableId} tbody tr`).forEach(row => {
+        let name = row.querySelector('.person-cell')?.innerText.toLowerCase() || row.innerText.toLowerCase();
+        let rowStatus = row.getAttribute('data-status') || 'all';
+        let matchesText = name.includes(text);
+        let matchesStatus = (status === 'all' || rowStatus === status);
+        row.style.display = (matchesText && matchesStatus) ? '' : 'none';
+    });
+}
+
+/* COURSE FILTER */
+function filterCourses() {
+    let text = document.getElementById("courseSearch").value.toLowerCase();
+    let cat = document.getElementById("courseCat").value;
+    document.querySelectorAll("#courseCardWrap .course-card").forEach(card => {
+        let title = card.querySelector(".course-title").innerText.toLowerCase();
+        let matches = title.includes(text) && (cat === "all" || card.dataset.category === cat);
+        card.style.display = matches ? "block" : "none";
+    });
+}
+
+/* BLOCK / UNBLOCK STUDENT */
+function toggleBlock(btn) {
+    let row = btn.closest('tr');
+    let pill = row.querySelector('.status-pill');
+    if (row.getAttribute('data-status') === 'blocked') {
+        row.setAttribute('data-status', 'active');
+        pill.className = 'status-pill status-active'; pill.innerText = 'Active';
+        btn.innerText = '🚫'; btn.title = 'Block'; btn.classList.add('del');
+    } else {
+        row.setAttribute('data-status', 'blocked');
+        pill.className = 'status-pill status-blocked'; pill.innerText = 'Blocked';
+        btn.innerText = '✅'; btn.title = 'Unblock'; btn.classList.remove('del');
+    }
+}
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script type="module">
+import { requireAdmin, doLogout, db, setUserStatus, auth } from "./assets/js/firebase.js";
+import {
+  collection, getDocs, query, orderBy, addDoc, deleteDoc, doc, serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  listCourses, addCourse, updateCourse, togglePublish, deleteCourse,
+  listFolders, addFolder, deleteFolder, ensureDefaultFolders, getFolder,
+  listMaterials, addMaterial, deleteMaterial, toEmbedUrl,
+  listAllMaterialsForCourse,
+} from "./assets/js/courses.js";
+import {
+  listVideos, addVideo, deleteVideo, listPdfs, addPdf, deletePdf, ensureSeedPdfLibrary,
+} from "./assets/js/library.js";
+import {
+  computeCourseCompletion, adminListAllProgress, adminListAllActivity,
+  adminCountAiChatsByUser,
+} from "./assets/js/data.js";
+import { exportAdminReportPdf } from "./assets/js/pdf-export.js";
+import {
+  apiListUsers, apiCreateInstructor, apiCreateStudent, apiEditUser,
+  apiToggleBlock, apiDeleteUser, apiUploadVideo, apiDeleteVideo as apiDeleteVideoUpload,
+  apiUploadProfilePhoto,
+  apiListCourses, apiCreateCourse, apiUpdateCourse, apiDeleteCourse,
+  apiPublishAnnouncement, apiGetAnnouncements, apiDeleteAnnouncement,
+} from "./assets/js/admin-api.js";
+
+// --- Auth guard: only role === "admin" gets past this page ---
+requireAdmin(async (user, profile) => {
+  const roleTag = document.getElementById("adminRoleTag");
+  if (roleTag) roleTag.textContent = `Signed in as ${profile.name || profile.email}`;
+  
+  const nameEl = document.getElementById("adminProfileName");
+  if (nameEl) nameEl.textContent = profile.name || user.displayName || "Administrator";
+  const emailEl = document.getElementById("adminProfileEmail");
+  if (emailEl) emailEl.textContent = profile.email || user.email || "admin@skillhub.com";
+  
+  if (profile.photoUrl) {
+    let aUrl = profile.photoUrl;
+    if (aUrl.startsWith("/uploads/")) aUrl = "http://localhost:5000" + aUrl;
+    const avatar = document.getElementById("adminSettingsAvatar");
+    if (avatar) avatar.src = aUrl;
+    const headerAvatar = document.querySelector(".header-right .profile-trigger img");
+    if (headerAvatar) headerAvatar.src = aUrl;
+  }
+  loadAdminPrefs();
+
+  if (typeof window.bootAdmin === "function") {
+    await window.bootAdmin();
+  }
+});
+
+document.getElementById("adminLogoutLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  doLogout("admin-login.html");
+});
+
+// =====================================================================
+// EDIT USER modal — shared by students & instructors, backed by the
+// real Flask API (PUT /api/admin/users/<uid>).
+// =====================================================================
+// =====================================================================
+// USERS & STUDENTS (9-Column Table, Real-time Filters, View Details)
+// =====================================================================
+let editUserRole = "student";
+let cachedStudentsList = [];
+
+function openUserDetails(u) {
+  document.getElementById("detailUserName").textContent = u.name || "(No Name)";
+  document.getElementById("detailUserEmail").textContent = u.email || "";
+  document.getElementById("detailRegNo").textContent = u.regNo || "(Not Set)";
+  document.getElementById("detailMobile").textContent = u.phone || "(Not Set)";
+  document.getElementById("detailBranch").textContent = u.branch || "(Not Set)";
+  document.getElementById("detailYear").textContent = u.year || "(Not Set)";
+  document.getElementById("detailSemester").textContent = u.semester || "(Not Set)";
+  document.getElementById("detailCreatedAt").textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "(Recently)";
+
+  const avatar = document.getElementById("detailUserAvatar");
+  avatar.src = u.photoUrl || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+  const statusPill = document.getElementById("detailUserStatus");
+  statusPill.className = `status-pill ${u.status === "blocked" ? "status-blocked" : "status-active"}`;
+  statusPill.textContent = u.status === "blocked" ? "Blocked" : "Active";
+
+  const compPill = document.getElementById("detailProfileCompleted");
+  compPill.className = `status-pill ${u.profileCompleted ? "status-active" : "status-blocked"}`;
+  compPill.textContent = u.profileCompleted ? "Profile Complete" : "Incomplete Profile";
+
+  const blockBtn = document.getElementById("detailBlockBtn");
+  blockBtn.textContent = u.status === "blocked" ? "Unblock Account" : "Block Account";
+  blockBtn.onclick = async () => {
+    try {
+      await apiToggleBlock(u.id);
+      closeModal("modalUserDetails");
+      await renderStudents();
+    } catch (err) { alert(err.message); }
+  };
+
+  const deleteBtn = document.getElementById("detailDeleteBtn");
+  deleteBtn.onclick = async () => {
+    if (!confirm(`Permanently delete account for ${u.name || u.email}?`)) return;
+    try {
+      await apiDeleteUser(u.id);
+      closeModal("modalUserDetails");
+      await renderStudents();
+    } catch (err) { alert(err.message); }
+  };
+
+  const editBtn = document.getElementById("detailEditBtn");
+  editBtn.onclick = () => {
+    closeModal("modalUserDetails");
+    openEditUser(u, "student");
+  };
+
+  openModal("modalUserDetails");
+}
+
+function openEditUser(u, role) {
+  editUserRole = role;
+  document.getElementById("editUserId").value = u.id;
+  document.getElementById("editUserName").value = u.name || "";
+  if (document.getElementById("editUserRegNo")) document.getElementById("editUserRegNo").value = u.regNo || "";
+  if (document.getElementById("editUserPhone")) document.getElementById("editUserPhone").value = u.phone || "";
+  if (document.getElementById("editUserBranch")) document.getElementById("editUserBranch").value = u.branch || "";
+  if (document.getElementById("editUserYear")) document.getElementById("editUserYear").value = u.year || "";
+  if (document.getElementById("editUserSemester")) document.getElementById("editUserSemester").value = u.semester || "";
+  if (document.getElementById("editUserProfileCompleted")) document.getElementById("editUserProfileCompleted").checked = !!u.profileCompleted;
+  
+  const errEl = document.getElementById("editUserError");
+  if (errEl) errEl.style.display = "none";
+  openModal("modalEditUser");
+}
+
+document.getElementById("saveEditUserBtn").addEventListener("click", async () => {
+  const uid = document.getElementById("editUserId").value;
+  const errEl = document.getElementById("editUserError");
+  errEl.style.display = "none";
+  try {
+    const updates = {
+      name: document.getElementById("editUserName").value.trim(),
+      regNo: document.getElementById("editUserRegNo") ? document.getElementById("editUserRegNo").value.trim() : "",
+      phone: document.getElementById("editUserPhone") ? document.getElementById("editUserPhone").value.trim() : "",
+      branch: document.getElementById("editUserBranch") ? document.getElementById("editUserBranch").value.trim() : "",
+      year: document.getElementById("editUserYear") ? document.getElementById("editUserYear").value.trim() : "",
+      semester: document.getElementById("editUserSemester") ? document.getElementById("editUserSemester").value.trim() : "",
+      profileCompleted: document.getElementById("editUserProfileCompleted") ? document.getElementById("editUserProfileCompleted").checked : false,
+    };
+
+    await apiEditUser(uid, updates);
+    closeModal("modalEditUser");
+    if (editUserRole === "instructor") renderInstructors();
+    else renderStudents();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  }
+});
+
+function applyStudentFilters() {
+  const search = (document.getElementById("studentSearch").value || "").toLowerCase().trim();
+  const branch = (document.getElementById("filterBranch") ? document.getElementById("filterBranch").value : "all");
+  const year = (document.getElementById("filterYear") ? document.getElementById("filterYear").value : "all");
+  const sem = (document.getElementById("filterSemester") ? document.getElementById("filterSemester").value : "all");
+  const status = (document.getElementById("studentStatus") ? document.getElementById("studentStatus").value : "all");
+
+  const filtered = cachedStudentsList.filter((u) => {
+    // Exclude administrators from student table
+    if (u.role === "admin") return false;
+
+    // Search
+    if (search) {
+      const match = `${u.name} ${u.email} ${u.regNo} ${u.phone} ${u.branch}`.toLowerCase();
+      if (!match.includes(search)) return false;
+    }
+    // Branch
+    if (branch !== "all") {
+      if ((u.branch || "").toLowerCase() !== branch.toLowerCase()) return false;
+    }
+    // Year
+    if (year !== "all") {
+      if (!String(u.year || "").toLowerCase().includes(year.toLowerCase()) && !year.toLowerCase().includes(String(u.year || "").toLowerCase())) return false;
+    }
+    // Semester
+    if (sem !== "all") {
+      const uSem = String(u.semester || "").toLowerCase();
+      if (!uSem.includes(sem.toLowerCase()) && !sem.toLowerCase().includes(uSem)) return false;
+    }
+    // Status
+    if (status !== "all") {
+      if (status === "completed" && !u.profileCompleted) return false;
+      if (status === "incomplete" && u.profileCompleted) return false;
+      if (status === "active" && u.status === "blocked") return false;
+      if (status === "blocked" && u.status !== "blocked") return false;
+    }
+    return true;
+  });
+
+  renderStudentTableRows(filtered);
+}
+
+function renderStudentTableRows(users) {
+  const tbody = document.getElementById("studentsTableBody");
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:#64748b;">No matching students found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = users.map((u) => {
+    const avatarUrl = u.photoUrl || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    const statusClass = u.status === "blocked" ? "status-blocked" : "status-active";
+    const statusText = u.status === "blocked" ? "Blocked" : "Active";
+    const compBadge = u.profileCompleted
+      ? `<span style="font-size:11px; font-weight:700; background:#f0fdf4; color:#166534; padding:2px 7px; border-radius:4px; border:1px solid #bbf7d0;">Completed</span>`
+      : `<span style="font-size:11px; font-weight:700; background:#fffbeb; color:#92400e; padding:2px 7px; border-radius:4px; border:1px solid #fde68a;">Incomplete</span>`;
+
+    return `
+      <tr data-uid="${u.id}" style="border-bottom:1px solid #e2e8f0; transition:background 0.15s ease;">
+        <td style="padding:10px 14px;">
+          <img src="${avatarUrl}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:1.5px solid #e2e8f0; background:#f8fafc;" alt="Avatar">
+        </td>
+        <td style="padding:10px 14px;">
+          <div style="font-weight:700; color:#0f172a;">${u.name || "(No Name)"}</div>
+          <div style="font-size:12px; color:#64748b;">${u.email || ""}</div>
+        </td>
+        <td style="padding:10px 14px; font-family:monospace; font-weight:700; color:#334155;">
+          ${u.regNo || '<span style="opacity:0.4;">—</span>'}
+        </td>
+        <td style="padding:10px 14px;">
+          <span style="display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:6px; background:#eef2ff; color:#4f46e5;">
+            ${u.branch || "General"}
+          </span>
+        </td>
+        <td style="padding:10px 14px; font-size:13px; color:#475569;">
+          ${u.year || '<span style="opacity:0.4;">—</span>'}
+        </td>
+        <td style="padding:10px 14px; font-size:13px; color:#475569;">
+          ${u.semester || '<span style="opacity:0.4;">—</span>'}
+        </td>
+        <td style="padding:10px 14px; font-size:13px; color:#475569;">
+          ${u.phone || '<span style="opacity:0.4;">—</span>'}
+        </td>
+        <td style="padding:10px 14px;">
+          <div style="display:flex; flex-direction:column; gap:3px;">
+            <span class="status-pill ${statusClass}" style="font-size:11px; padding:2px 8px;">${statusText}</span>
+            ${compBadge}
+          </div>
+        </td>
+        <td style="padding:10px 14px; text-align:center;">
+          <div style="display:flex; gap:6px; align-items:center; justify-content:center;">
+            <button class="btn outline" data-view-user="${u.id}" style="padding:5px 10px; font-size:12px; font-weight:700; border-color:#6366f1; color:#6366f1; background:#eef2ff; cursor:pointer; border-radius:6px;" title="View Details">👁️ View Details</button>
+            <button class="icon-btn" data-edit-user="${u.id}" title="Edit" style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:5px 8px; cursor:pointer;">✏️</button>
+            <button class="icon-btn ${u.status === "blocked" ? "" : "del"}" data-toggle-block="${u.id}" title="${u.status === "blocked" ? "Unblock" : "Block"}" style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:5px 8px; cursor:pointer;">${u.status === "blocked" ? "✅" : "🚫"}</button>
+            <button class="icon-btn del" data-delete-user="${u.id}" title="Delete" style="background:#fff; border:1px solid #fee2e2; border-radius:6px; padding:5px 8px; cursor:pointer;">🗑</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // Attach button events
+  tbody.querySelectorAll("[data-view-user]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const u = cachedStudentsList.find((x) => x.id === btn.getAttribute("data-view-user"));
+      if (u) openUserDetails(u);
+    });
+  });
+
+  tbody.querySelectorAll("[data-edit-user]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const u = cachedStudentsList.find((x) => x.id === btn.getAttribute("data-edit-user"));
+      if (u) openEditUser(u, "student");
+    });
+  });
+
+  tbody.querySelectorAll("[data-toggle-block]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        await apiToggleBlock(btn.getAttribute("data-toggle-block"));
+        await renderStudents();
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+      }
+    });
+  });
+
+  tbody.querySelectorAll("[data-delete-user]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Permanently delete this user from the system?")) return;
+      try {
+        await apiDeleteUser(btn.getAttribute("data-delete-user"));
+        await renderStudents();
+      } catch (err) { alert(err.message); }
+    });
+  });
+}
+
+async function renderStudents() {
+  const tbody = document.getElementById("studentsTableBody");
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">Fetching users from shared backend...</td></tr>`;
+  try {
+    const res = await apiListUsers();
+    cachedStudentsList = (res && res.users) || [];
+    applyStudentFilters();
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#ef4444;">Failed to load users: ${err.message || ""}</td></tr>`;
+  }
+}
+
+// Attach filter listeners
+["studentSearch", "filterBranch", "filterYear", "filterSemester", "studentStatus"].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener("input", applyStudentFilters);
+    el.addEventListener("change", applyStudentFilters);
+  }
+});
+
+const refreshBtn = document.getElementById("refreshUsersBtn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", () => renderStudents());
+}
+
+document.getElementById("addStudentBtn").addEventListener("click", async () => {
+  const errEl = document.getElementById("addStudentError");
+  errEl.style.display = "none";
+  try {
+    await apiCreateStudent({
+      name: document.getElementById("newStudentName").value.trim(),
+      email: document.getElementById("newStudentEmail").value.trim(),
+      password: document.getElementById("newStudentPassword").value,
+      branch: document.getElementById("newStudentBranch").value.trim(),
+    });
+    ["newStudentName", "newStudentEmail", "newStudentPassword", "newStudentBranch"].forEach((id) => (document.getElementById(id).value = ""));
+    closeModal("modalAddStudent");
+    renderStudents();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  }
+});
+
+// =====================================================================
+// INSTRUCTORS — real list + add + edit + block/unblock + delete.
+// This replaces the two hardcoded fake rows that used to live here.
+// =====================================================================
+async function renderInstructors() {
+  const tbody = document.getElementById("instructorsTableBody");
+  try {
+    const { users } = await apiListUsers("instructor");
+
+    tbody.innerHTML = users.length
+      ? users
+          .map(
+            (u) => `
+        <tr data-status="${u.status || "active"}" data-uid="${u.id}">
+          <td><div class="person-cell"><img class="avatar-sm" src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || "?")}&background=random">${u.name || "(no name)"}</div></td>
+          <td>${u.email || ""}</td>
+          <td>${u.courses ?? 0}</td>
+          <td>⭐ ${u.rating ?? "—"}</td>
+          <td><span class="status-pill ${u.status === "blocked" ? "status-blocked" : "status-active"}">${u.status === "blocked" ? "Blocked" : "Active"}</span></td>
+          <td><div class="row-actions">
+            <button class="icon-btn" data-edit-inst="${u.id}" title="Edit">✏️</button>
+            <button class="icon-btn ${u.status === "blocked" ? "" : "del"}" data-toggle-block-inst="${u.id}" title="${u.status === "blocked" ? "Unblock" : "Block"}">${u.status === "blocked" ? "✅" : "🚫"}</button>
+            <button class="icon-btn del" data-delete-inst="${u.id}" title="Delete">🗑</button>
+          </div></td>
+        </tr>`
+          )
+          .join("")
+      : `<tr><td colspan="6" style="opacity:0.7;">No instructors yet — add one above.</td></tr>`;
+
+    tbody.querySelectorAll("[data-toggle-block-inst]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        try { await apiToggleBlock(btn.getAttribute("data-toggle-block-inst")); renderInstructors(); }
+        catch (err) { alert(err.message); btn.disabled = false; }
+      });
+    });
+    tbody.querySelectorAll("[data-edit-inst]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const u = users.find((x) => x.id === btn.getAttribute("data-edit-inst"));
+        if (u) openEditUser(u, "instructor");
+      });
+    });
+    tbody.querySelectorAll("[data-delete-inst]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Delete this instructor permanently? This cannot be undone.")) return;
+        try { await apiDeleteUser(btn.getAttribute("data-delete-inst")); renderInstructors(); }
+        catch (err) { alert(err.message); }
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="6" style="opacity:0.7;">Couldn't load instructors right now. ${err.message || ""}</td></tr>`;
+  }
+}
+
+document.getElementById("addInstructorBtn").addEventListener("click", async () => {
+  const errEl = document.getElementById("addInstructorError");
+  errEl.style.display = "none";
+  try {
+    await apiCreateInstructor({
+      name: document.getElementById("newInstName").value.trim(),
+      email: document.getElementById("newInstEmail").value.trim(),
+      password: document.getElementById("newInstPassword").value,
+      expertise: document.getElementById("newInstExpertise").value.trim(),
+    });
+    ["newInstName", "newInstEmail", "newInstPassword", "newInstExpertise"].forEach((id) => (document.getElementById(id).value = ""));
+    closeModal("modalAddInstructor");
+    renderInstructors();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  }
+});
+
+// =====================================================================
+// COURSES — real Firestore CRUD
+// =====================================================================
+function adminCourseCardHTML(course) {
+  const published = course.status === "published";
+  const thumb = course.thumbnailUrl
+    ? `<img src="${course.thumbnailUrl}" style="width:100%; height:100%; object-fit:cover;">`
+    : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px;">${course.icon || "📘"}</div>`;
+  return `
+    <div class="course-card" data-category="${course.category || "Programming"}" data-id="${course.id}">
+      <div class="course-image" style="position:relative; padding:0; aspect-ratio:16/9; overflow:hidden;">
+        ${thumb}
+        <span class="course-status-badge status-pill ${published ? "status-active" : "status-draft"}" style="position:absolute; top:6px; right:6px;">${published ? "Published" : "Draft"}</span>
+      </div>
+      <div class="course-content">
+        <span class="badge">${course.category || "Programming"}</span>
+        <h2 class="course-title">${course.title}</h2>
+        <div class="course-meta"><span>👨‍🏫 ${course.instructor || "Unassigned"}</span></div>
+        <div class="course-meta"><span>${course.hours || 0} Hours</span></div>
+        <div class="course-buttons">
+          <button class="btn small" style="flex:1;" data-manage="${course.id}">Manage Content</button>
+          <button class="btn ${published ? "outline" : ""} small" style="flex:1; ${published ? "" : "background: var(--success-color);"}" data-toggle-publish="${course.id}" data-current-status="${course.status || "draft"}">${published ? "Unpublish" : "Publish"}</button>
+          <button class="icon-btn del" data-delete-course="${course.id}">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function renderAdminCourses() {
+  const wrap = document.getElementById("courseCardWrap");
+  try {
+    const courses = await apiListCourses();
+    wrap.innerHTML = courses.length
+      ? courses.map(adminCourseCardHTML).join("")
+      : `<p style="opacity:0.7;">No courses yet — click "+ Add Course" to create one.</p>`;
+
+    wrap.querySelectorAll("[data-manage]").forEach((btn) => {
+      btn.addEventListener("click", () => openContentManager(btn.getAttribute("data-manage")));
+    });
+    wrap.querySelectorAll("[data-toggle-publish]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const courseId = btn.getAttribute("data-toggle-publish");
+        const currentStatus = btn.getAttribute("data-current-status");
+        await apiUpdateCourse(courseId, {
+          status: currentStatus === "published" ? "draft" : "published",
+        });
+        renderAdminCourses();
+      });
+    });
+    wrap.querySelectorAll("[data-delete-course]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Delete this course? This cannot be undone.")) return;
+        await apiDeleteCourse(btn.getAttribute("data-delete-course"));
+        renderAdminCourses();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = `<p style="opacity:0.7;">Couldn't load courses right now.</p>`;
+  }
+}
+
+document.getElementById("saveCourseBtn").addEventListener("click", async () => {
+  const title = document.getElementById("newCourseTitle").value.trim();
+  if (!title) { alert("Give the course a title first."); return; }
+  await apiCreateCourse({
+    title,
+    category: document.getElementById("newCourseCategory").value,
+    instructor: document.getElementById("newCourseInstructor").value.trim(),
+    hours: document.getElementById("newCourseHours").value,
+    thumbnailUrl: document.getElementById("newCourseThumb").value.trim(),
+  });
+  document.getElementById("newCourseTitle").value = "";
+  document.getElementById("newCourseInstructor").value = "";
+  document.getElementById("newCourseHours").value = "";
+  document.getElementById("newCourseThumb").value = "";
+  closeModal("modalAddCourse");
+  renderAdminCourses();
+});
+
+// =====================================================================
+// CONTENT MANAGER — folders inside a course
+// =====================================================================
+let activeCourseId = null;
+let activeFolderId = null;
+
+function adminFolderCardHTML(folder) {
+  return `
+    <div class="course-card" data-id="${folder.id}">
+      <div class="course-image">${folder.icon || "📁"}</div>
+      <div class="course-content">
+        <h2 class="course-title">${folder.name}</h2>
+        <div class="course-buttons">
+          <button class="btn small" style="flex:1;" data-open-folder="${folder.id}">Open</button>
+          <button class="icon-btn del" data-delete-folder="${folder.id}">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function openContentManager(courseId) {
+  activeCourseId = courseId;
+  const courses = await listCourses();
+  const course = courses.find((c) => c.id === courseId);
+  document.getElementById("contentManagerTitle").textContent = `🗂 Manage Content — ${course ? course.title : ""}`;
+  showAdminSection("content-manager");
+  await ensureDefaultFolders(courseId);
+  await renderFolders();
+}
+
+async function renderFolders() {
+  const wrap = document.getElementById("adminFolderWrap");
+  wrap.innerHTML = `<p style="opacity:0.7;">Loading folders...</p>`;
+  try {
+    const folders = await listFolders(activeCourseId, null);
+    wrap.innerHTML = folders.length
+      ? folders.map(adminFolderCardHTML).join("")
+      : `<p style="opacity:0.7;">No folders yet.</p>`;
+
+    wrap.querySelectorAll("[data-open-folder]").forEach((btn) => {
+      btn.addEventListener("click", () => openFolderManager(btn.getAttribute("data-open-folder")));
+    });
+    wrap.querySelectorAll("[data-delete-folder]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Delete this folder and everything inside it (subfolders + materials)?")) return;
+        await deleteFolder(activeCourseId, btn.getAttribute("data-delete-folder"));
+        renderFolders();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = `<p style="opacity:0.7;">Couldn't load folders right now.</p>`;
+  }
+}
+
+document.getElementById("addFolderBtn").addEventListener("click", async () => {
+  const input = document.getElementById("newFolderName");
+  const name = input.value.trim();
+  if (!name) return;
+  await addFolder(activeCourseId, name, "📁", null);
+  input.value = "";
+  renderFolders();
+});
+
+// =====================================================================
+// FOLDER MANAGER — Google-Drive-style: a folder can hold both subfolders
+// and materials. folderStack tracks the breadcrumb path so you can nest
+// as deep as you like and always navigate back up.
+// =====================================================================
+let folderStack = []; // [{id, name}, ...] from course root down to current folder
+
+function adminMaterialHTML(m) {
+  const embed = m.type === "video" ? toEmbedUrl(m.url) : null;
+  const thumb = m.type === "video"
+    ? (embed ? `<img src="https://img.youtube.com/vi/${(m.url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/) || [])[1]}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover;">` : "🎥")
+    : m.type === "pdf" ? "📄" : m.type === "link" ? "🔗" : "📝";
+  return `
+    <div class="course-card" data-id="${m.id}">
+      <div class="course-image" style="padding:0; aspect-ratio:16/9; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:2rem;">${thumb}</div>
+      <div class="course-content">
+        <span class="badge">${m.type}</span>
+        <h2 class="course-title" title="${m.title}">${m.title}</h2>
+        ${m.description ? `<p class="teacher" style="overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${m.description}</p>` : ""}
+        <div class="course-buttons">
+          ${m.url ? `<a class="btn small outline" style="flex:1; text-align:center;" href="${m.url}" target="_blank" rel="noopener">Open</a>` : `<span style="flex:1;"></span>`}
+          <button class="icon-btn del" data-delete-material="${m.id}">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function adminSubfolderHTML(folder) {
+  return `
+    <div class="course-card" data-id="${folder.id}">
+      <div class="course-image">${folder.icon || "📁"}</div>
+      <div class="course-content">
+        <h2 class="course-title">${folder.name}</h2>
+        <div class="course-buttons">
+          <button class="btn small" style="flex:1;" data-open-subfolder="${folder.id}" data-folder-name="${folder.name.replace(/"/g, "&quot;")}">Open</button>
+          <button class="icon-btn del" data-delete-subfolder="${folder.id}">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderBreadcrumb() {
+  const bc = document.getElementById("folderBreadcrumb");
+  const crumbs = [`<a href="#" data-crumb="-1" style="color:inherit;">🗂 Root</a>`]
+    .concat(folderStack.map((f, i) => `<a href="#" data-crumb="${i}" style="color:inherit;">${f.name}</a>`));
+  bc.innerHTML = crumbs.join(" &nbsp;/&nbsp; ");
+  bc.querySelectorAll("[data-crumb]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      const idx = parseInt(el.getAttribute("data-crumb"), 10);
+      if (idx === -1) { showAdminSection("content-manager"); renderFolders(); return; }
+      folderStack = folderStack.slice(0, idx + 1);
+      renderFolderView();
+    });
+  });
+}
+
+async function openFolderManager(folderId) {
+  const folder = await getFolder(activeCourseId, folderId);
+  folderStack = [{ id: folderId, name: folder ? folder.name : "Folder" }];
+  showAdminSection("folder-manager");
+  await renderFolderView();
+}
+
+async function openSubfolder(folderId, name) {
+  folderStack.push({ id: folderId, name });
+  await renderFolderView();
+}
+
+async function renderFolderView() {
+  const current = folderStack[folderStack.length - 1];
+  activeFolderId = current.id;
+  document.getElementById("folderManagerTitle").textContent = `📁 ${current.name}`;
+  renderBreadcrumb();
+  await renderSubfolders();
+  await renderMaterials();
+}
+
+async function renderSubfolders() {
+  const wrap = document.getElementById("adminSubfolderWrap");
+  try {
+    const subfolders = await listFolders(activeCourseId, activeFolderId);
+    wrap.innerHTML = subfolders.map(adminSubfolderHTML).join("");
+    wrap.querySelectorAll("[data-open-subfolder]").forEach((btn) => {
+      btn.addEventListener("click", () => openSubfolder(btn.getAttribute("data-open-subfolder"), btn.getAttribute("data-folder-name")));
+    });
+    wrap.querySelectorAll("[data-delete-subfolder]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Delete this folder and everything inside it?")) return;
+        await deleteFolder(activeCourseId, btn.getAttribute("data-delete-subfolder"));
+        renderSubfolders();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = `<p style="opacity:0.7;">Couldn't load subfolders right now.</p>`;
+  }
+}
+
+document.getElementById("addSubfolderBtn").addEventListener("click", async () => {
+  const input = document.getElementById("newSubfolderName");
+  const name = input.value.trim();
+  if (!name) return;
+  await addFolder(activeCourseId, name, "📁", activeFolderId);
+  input.value = "";
+  renderSubfolders();
+});
+
+async function renderMaterials() {
+  const wrap = document.getElementById("adminMaterialWrap");
+  wrap.innerHTML = `<p style="opacity:0.7;">Loading materials...</p>`;
+  try {
+    const materials = await listMaterials(activeCourseId, activeFolderId);
+    wrap.innerHTML = materials.length
+      ? materials.map(adminMaterialHTML).join("")
+      : `<p style="opacity:0.7;">Nothing added yet — use the form above.</p>`;
+
+    wrap.querySelectorAll("[data-delete-material]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await deleteMaterial(activeCourseId, activeFolderId, btn.getAttribute("data-delete-material"));
+        renderMaterials();
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = `<p style="opacity:0.7;">Couldn't load materials right now.</p>`;
+  }
+}
+
+document.getElementById("addMaterialBtn").addEventListener("click", async () => {
+  const title = document.getElementById("matTitle").value.trim();
+  if (!title) { alert("Give the material a title first."); return; }
+  await addMaterial(activeCourseId, activeFolderId, {
+    title,
+    type: document.getElementById("matType").value,
+    url: document.getElementById("matUrl").value.trim(),
+    description: document.getElementById("matDesc").value.trim(),
+  });
+  document.getElementById("matTitle").value = "";
+  document.getElementById("matUrl").value = "";
+  document.getElementById("matDesc").value = "";
+  renderMaterials();
+});
+
+document.getElementById("backToContentManagerBtn").addEventListener("click", () => {
+  showAdminSection("content-manager");
+});
+
+// =====================================================================
+// OVERVIEW — real counts + real per-course completion chart
+// =====================================================================
+async function computeCourseCompletionStats() {
+  const [courses, allProgress] = await Promise.all([listCourses(), adminListAllProgress()]);
+  const published = courses.filter((c) => c.status === "published");
+
+  // Group progress docs by courseId so we don't need one query per course.
+  const progressByCourse = {};
+  allProgress.forEach((p) => {
+    if (!p.courseId) return;
+    (progressByCourse[p.courseId] ||= []).push(p);
+  });
+
+  const results = [];
+  for (const c of published) {
+    const materials = await listAllMaterialsForCourse(c.id);
+    const totalMaterials = materials.length;
+    const courseProgress = progressByCourse[c.id] || [];
+    const studentIds = new Set(courseProgress.map((p) => p.uid));
+    let percent = 0;
+    if (totalMaterials && studentIds.size) {
+      let sum = 0;
+      studentIds.forEach((uid) => {
+        const done = courseProgress.filter((p) => p.uid === uid).length;
+        sum += Math.min(100, Math.round((done / totalMaterials) * 100));
+      });
+      percent = Math.round(sum / studentIds.size);
+    }
+    results.push({ title: c.title, percent, studentsWithProgress: studentIds.size });
+  }
+  return results;
+}
+
+async function renderOverview() {
+  try {
+    let studentCount = 0;
+    try {
+      const uRes = await apiListUsers();
+      const allUsers = (uRes && uRes.users) || [];
+      studentCount = allUsers.filter(u => u.role !== "admin").length;
+    } catch (_) {
+      try {
+        const usersSnap = await getDocs(collection(db, "users"));
+        studentCount = usersSnap.docs.map(d => d.data()).filter(u => u.role !== "admin").length;
+      } catch (e) {
+        console.warn("Could not query users count for overview:", e);
+      }
+    }
+
+    let courses = [];
+    try {
+      courses = await listCourses();
+    } catch (e) {
+      console.warn("Could not list courses for overview:", e);
+    }
+
+    let aiCounts = {};
+    try {
+      aiCounts = await adminCountAiChatsByUser();
+    } catch (e) {
+      console.warn("Could not count AI chats:", e);
+    }
+
+    let completion = [];
+    try {
+      completion = await computeCourseCompletionStats();
+    } catch (e) {
+      console.warn("Could not compute completion stats:", e);
+    }
+
+    const published = courses.filter((c) => c.status === "published");
+    const totalAiChats = Object.values(aiCounts).reduce((a, b) => a + b, 0);
+
+    const grid = document.getElementById("overviewStatsGrid");
+    if (grid) {
+      grid.innerHTML = `
+        <div class="dash-card"><div class="dash-icon">🎓</div><div class="dash-info"><h3>${studentCount}</h3><p>Total Students</p></div></div>
+        <div class="dash-card"><div class="dash-icon">📚</div><div class="dash-info"><h3>${published.length}</h3><p>Published Courses</p></div></div>
+        <div class="dash-card"><div class="dash-icon">🤖</div><div class="dash-info"><h3>${totalAiChats}</h3><p>AI Questions Asked</p></div></div>
+      `;
+    }
+
+    const withData = completion.filter((c) => c.studentsWithProgress > 0);
+    const overall = withData.length
+      ? Math.round(withData.reduce((s, c) => s + c.percent, 0) / withData.length)
+      : 0;
+
+    const donut = document.querySelector("#overviewDonutWrap .donut-chart");
+    if (donut) {
+      donut.style.background =
+        `conic-gradient(#6366f1 0% ${overall}%, rgba(0,0,0,0.06) ${overall}% 100%)`;
+    }
+    const donutCenter = document.getElementById("overviewDonutCenter");
+    if (donutCenter) donutCenter.innerHTML = `${overall}%<span>Avg.</span>`;
+    const donutCap = document.getElementById("overviewDonutCaption");
+    if (donutCap) {
+      donutCap.textContent = withData.length
+        ? `Based on ${withData.length} course(s) with student activity.`
+        : "No student progress recorded yet.";
+    }
+
+    const barsWrap = document.getElementById("overviewCourseBars");
+    if (barsWrap) {
+      barsWrap.innerHTML = completion.length
+        ? completion.map((c) => `
+          <div class="chart-list-item">
+            <div class="chart-label"><span>${c.title}</span><span>${c.studentsWithProgress ? c.percent + "%" : "No activity yet"}</span></div>
+            <div class="progress"><span style="width:${c.percent}%; background:#6366f1 !important;"></span></div>
+          </div>`).join("")
+        : `<p style="opacity:0.7;">Publish a course to see completion data here.</p>`;
+    }
+
+    window.__lastOverviewReport = {
+      totalStudents: studentCount,
+      totalCourses: courses.length,
+      publishedCourses: published.length,
+      totalAiChats,
+      courseCompletion: completion,
+    };
+  } catch (err) {
+    console.error("Overview render error:", err);
+  }
+}
+
+document.getElementById("exportReportBtn")?.addEventListener("click", () => {
+  if (window.__lastOverviewReport) exportAdminReportPdf(window.__lastOverviewReport);
+});
+
+// =====================================================================
+// LIBRARY MANAGER — Videos / PDFs / GATE
+// =====================================================================
+function switchLibraryTab(tab) {
+  document.getElementById("libPaneVideos").style.display = tab === "videos" ? "block" : "none";
+  document.getElementById("libPanePdfs").style.display = tab === "pdfs" ? "block" : "none";
+  document.getElementById("libPaneGate").style.display = tab === "gate" ? "block" : "none";
+  ["libTabVideos", "libTabPdfs", "libTabGate"].forEach((id) => document.getElementById(id).classList.add("outline"));
+  document.getElementById({ videos: "libTabVideos", pdfs: "libTabPdfs", gate: "libTabGate" }[tab]).classList.remove("outline");
+}
+document.getElementById("libTabVideos").addEventListener("click", () => switchLibraryTab("videos"));
+document.getElementById("libTabPdfs").addEventListener("click", () => switchLibraryTab("pdfs"));
+document.getElementById("libTabGate").addEventListener("click", () => { switchLibraryTab("gate"); renderAdminGate(); });
+
+function adminVideoCardHTML(v) {
+  const isUpload = v.type === "upload" && v.fileUrl;
+  const preview = isUpload
+    ? `<video src="${v.fileUrl}" style="width:100%; height:100%; object-fit:cover;" muted></video>`
+    : v.thumbnailUrl
+      ? `<img src="${v.thumbnailUrl}" style="width:100%; height:100%; object-fit:cover;">`
+      : "🎥";
+  const previewLink = isUpload ? v.fileUrl : v.url;
+  const sizeLabel = isUpload && v.sizeBytes ? `<span class="badge" style="margin-left:6px;">${(v.sizeBytes / (1024 * 1024)).toFixed(1)} MB</span>` : "";
+  return `
+    <div class="course-card" data-id="${v.id}">
+      <div class="course-image">${preview}</div>
+      <div class="course-content">
+        <span class="badge">${v.section}</span>${sizeLabel}${isUpload ? '<span class="badge">📥 Offline-ready</span>' : ""}
+        <h2 class="course-title">${v.title}</h2>
+        <div class="course-buttons">
+          <a class="btn small outline" style="flex:1; text-align:center;" href="${previewLink}" target="_blank" rel="noopener">Preview</a>
+          ${isUpload ? `<a class="btn small" style="flex:1; text-align:center;" href="${v.fileUrl}" download>⬇️ Download</a>` : ""}
+          <button class="icon-btn del" data-delete-video="${v.id}" data-video-type="${v.type || "link"}">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function renderAdminVideos() {
+  const wrap = document.getElementById("adminVideoGrid");
+  const videos = await listVideos();
+  wrap.innerHTML = videos.length ? videos.map(adminVideoCardHTML).join("") : `<p style="opacity:0.7;">No videos yet.</p>`;
+  wrap.querySelectorAll("[data-delete-video]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-delete-video");
+      if (btn.getAttribute("data-video-type") === "upload") await apiDeleteVideoUpload(id);
+      else await deleteVideo(id);
+      renderAdminVideos();
+    });
+  });
+}
+
+// --- Upload vs YouTube-link source toggle ---
+let vidSourceMode = "upload";
+let vidSelectedFile = null;
+const vidUploadBtn = document.getElementById("vidSourceUploadBtn");
+const vidYoutubeBtn = document.getElementById("vidSourceYoutubeBtn");
+const vidUploadPane = document.getElementById("vidUploadPane");
+const vidYoutubePane = document.getElementById("vidYoutubePane");
+
+function setVidSourceMode(mode) {
+  vidSourceMode = mode;
+  vidUploadPane.style.display = mode === "upload" ? "block" : "none";
+  vidYoutubePane.style.display = mode === "youtube" ? "block" : "none";
+  vidUploadBtn.classList.toggle("outline", mode !== "upload");
+  vidYoutubeBtn.classList.toggle("outline", mode !== "youtube");
+}
+vidUploadBtn.addEventListener("click", () => setVidSourceMode("upload"));
+vidYoutubeBtn.addEventListener("click", () => setVidSourceMode("youtube"));
+
+// --- Real drag & drop ---
+const dropZone = document.getElementById("vidDropZone");
+const fileInput = document.getElementById("vidFileInput");
+const fileChosenLabel = document.getElementById("vidFileChosen");
+
+function selectVideoFile(file) {
+  vidSelectedFile = file;
+  fileChosenLabel.style.display = "block";
+  fileChosenLabel.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+  if (!document.getElementById("vidTitle").value.trim()) {
+    document.getElementById("vidTitle").value = file.name.replace(/\.[^/.]+$/, "");
+  }
+}
+dropZone.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) selectVideoFile(fileInput.files[0]); });
+["dragenter", "dragover"].forEach((evt) =>
+  dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent-color,#7c5cff)"; })
+);
+["dragleave", "drop"].forEach((evt) =>
+  dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--border-color)"; })
+);
+dropZone.addEventListener("drop", (e) => {
+  const file = e.dataTransfer.files[0];
+  if (file) selectVideoFile(file);
+});
+
+document.getElementById("addVideoBtn").addEventListener("click", async () => {
+  const errEl = document.getElementById("vidError");
+  errEl.style.display = "none";
+  const title = document.getElementById("vidTitle").value.trim();
+  const section = document.getElementById("vidSection").value;
+  const branch = document.getElementById("vidBranch").value.trim();
+  const description = document.getElementById("vidDesc").value.trim();
+
+  try {
+    if (vidSourceMode === "upload") {
+      if (!vidSelectedFile) throw new Error("Choose or drop a video file first.");
+      const progWrap = document.getElementById("vidUploadProgressWrap");
+      const progBar = document.getElementById("vidUploadProgressBar");
+      const progText = document.getElementById("vidUploadProgressText");
+      progWrap.style.display = "block";
+      await apiUploadVideo(vidSelectedFile, { title, description, section, branch }, (pct) => {
+        progBar.style.width = pct + "%";
+        progText.textContent = pct + "%";
+      });
+      progWrap.style.display = "none";
+      vidSelectedFile = null;
+      fileInput.value = "";
+      fileChosenLabel.style.display = "none";
+    } else {
+      const url = document.getElementById("vidUrl").value.trim();
+      if (!title || !url) throw new Error("Title and URL are required.");
+      await addVideo({
+        title, url, section,
+        thumbnailUrl: document.getElementById("vidThumb").value.trim(),
+        description,
+      });
+      document.getElementById("vidUrl").value = "";
+      document.getElementById("vidThumb").value = "";
+    }
+    ["vidTitle", "vidBranch", "vidDesc"].forEach((id) => (document.getElementById(id).value = ""));
+    renderAdminVideos();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  }
+});
+
+function adminPdfCardHTML(p) {
+  return `
+    <div class="pdf-doc-card">
+      <div class="pdf-doc-top">
+        <div class="pdf-doc-icon">📄</div>
+        <div class="pdf-doc-info">
+          <h3>${p.title}</h3>
+          <div class="pdf-doc-tags"><span class="pdf-doc-tag">${p.tag}</span><span class="pdf-doc-tag">${p.section}</span>${p.sizeLabel ? `<span class="pdf-doc-size">${p.sizeLabel}</span>` : ""}</div>
+        </div>
+      </div>
+      ${p.description ? `<p class="pdf-doc-desc">${p.description}</p>` : ""}
+      <div class="pdf-doc-actions">
+        <a class="pdf-doc-btn view" href="${p.fileUrl}" target="_blank" rel="noopener">👁 View</a>
+        <button class="pdf-doc-btn download" data-delete-pdf="${p.id}" style="cursor:pointer;">🗑 Delete</button>
+      </div>
+    </div>`;
+}
+
+async function renderAdminPdfs() {
+  const wrap = document.getElementById("adminPdfGrid");
+  const pdfs = await listPdfs();
+  wrap.innerHTML = pdfs.length ? pdfs.map(adminPdfCardHTML).join("") : `<p style="opacity:0.7;">No PDFs yet.</p>`;
+  wrap.querySelectorAll("[data-delete-pdf]").forEach((btn) => {
+    btn.addEventListener("click", async () => { await deletePdf(btn.getAttribute("data-delete-pdf")); renderAdminPdfs(); renderAdminGate(); });
+  });
+}
+
+async function renderAdminGate() {
+  const wrap = document.getElementById("adminGateGrid");
+  const pdfs = (await listPdfs()).filter((p) => p.section === "GATE");
+  wrap.innerHTML = pdfs.length ? pdfs.map(adminPdfCardHTML).join("") : `<p style="opacity:0.7;">No GATE resources yet — add a PDF above with Section set to "GATE".</p>`;
+  wrap.querySelectorAll("[data-delete-pdf]").forEach((btn) => {
+    btn.addEventListener("click", async () => { await deletePdf(btn.getAttribute("data-delete-pdf")); renderAdminPdfs(); renderAdminGate(); });
+  });
+}
+
+document.getElementById("addPdfBtn").addEventListener("click", async () => {
+  const title = document.getElementById("pdfTitle").value.trim();
+  const fileUrl = document.getElementById("pdfUrl").value.trim();
+  if (!title || !fileUrl) { alert("Title and file URL are required."); return; }
+  await addPdf({
+    title, fileUrl,
+    section: document.getElementById("pdfSection").value,
+    tag: document.getElementById("pdfTag").value,
+    sizeLabel: document.getElementById("pdfSize").value.trim(),
+    description: document.getElementById("pdfDesc").value.trim(),
+  });
+  ["pdfTitle", "pdfUrl", "pdfSize", "pdfDesc"].forEach((id) => document.getElementById(id).value = "");
+  renderAdminPdfs();
+  renderAdminGate();
+});
+
+// =====================================================================
+// DATA RECORDS — real per-student activity + CSV/PDF export
+// =====================================================================
+let lastRecordsRows = [];
+
+async function renderDataRecords() {
+  const tbody = document.getElementById("dataRecordsBody");
+  const feed = document.getElementById("recentActivityFeed");
+  try {
+    const [usersSnap, aiCounts, activity] = await Promise.all([
+      getDocs(query(collection(db, "users"), orderBy("createdAt", "desc"))),
+      adminCountAiChatsByUser(), adminListAllActivity(),
+    ]);
+    const students = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((u) => u.role !== "admin");
+
+    lastRecordsRows = students.map((s) => ({
+      name: s.name || "(no name)",
+      email: s.email || "",
+      aiChats: aiCounts[s.id] || 0,
+      joined: s.createdAt && s.createdAt.toDate ? s.createdAt.toDate().toLocaleDateString() : "",
+    }));
+
+    tbody.innerHTML = lastRecordsRows.length
+      ? lastRecordsRows.map((r) => `
+        <tr><td>${r.name}</td><td>${r.email}</td><td>${r.aiChats}</td><td>${r.joined}</td></tr>`).join("")
+      : `<tr><td colspan="4" style="opacity:0.7;">No students yet.</td></tr>`;
+
+    feed.innerHTML = activity.slice(0, 30).length
+      ? activity.slice(0, 30).map((e) => `
+        <div class="log-card"><div class="noti-left"><span class="noti-icon">${activityIcon(e.type)}</span><div class="noti-text"><b>${activityLabel(e.type)}</b>${e.refTitle ? `: ${e.refTitle}` : ""}<span>${e.at && e.at.toDate ? e.at.toDate().toLocaleString() : ""}</span></div></div></div>`).join("")
+      : `<p style="opacity:0.7;">No activity recorded yet.</p>`;
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="4" style="opacity:0.7;">Couldn't load records right now.</td></tr>`;
+  }
+}
+
+function activityIcon(type) {
+  return { download_pdf: "📄", watch_video: "🎥", material_complete: "✅", ai_chat: "🤖" }[type] || "•";
+}
+function activityLabel(type) {
+  return { download_pdf: "Downloaded a PDF", watch_video: "Watched a video", material_complete: "Completed a material", ai_chat: "Asked the AI tutor" }[type] || type;
+}
+
+document.getElementById("exportCsvBtn").addEventListener("click", () => {
+  const header = "Name,Email,AI Questions,Joined\n";
+  const rows = lastRecordsRows.map((r) => [r.name, r.email, r.aiChats, r.joined]
+    .map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
+  const csv = header + rows.join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "skillhub-students.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById("exportRecordsPdfBtn").addEventListener("click", () => {
+  if (window.__lastOverviewReport) exportAdminReportPdf(window.__lastOverviewReport);
+  else alert("Report data is still loading — try again in a moment.");
+});
+
+// =====================================================================
+// ACTIVITY LOGS (admin view)
+// =====================================================================
+async function renderAdminLogs() {
+  const wrap = document.getElementById("adminLogsFeed");
+  try {
+    const activity = await adminListAllActivity();
+    wrap.innerHTML = activity.length
+      ? activity.slice(0, 60).map((e) => `
+        <div class="log-card"><div class="noti-left"><span class="noti-icon">${activityIcon(e.type)}</span><div class="noti-text"><b>${activityLabel(e.type)}</b>${e.refTitle ? `: ${e.refTitle}` : ""}<span>${e.at && e.at.toDate ? e.at.toDate().toLocaleString() : ""}</span></div></div></div>`).join("")
+      : `<p style="opacity:0.7;">No activity recorded yet.</p>`;
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = `<p style="opacity:0.7;">Couldn't load activity right now.</p>`;
+  }
+}
+
+// --- Boot Function ---
+let adminBooted = false;
+async function bootAdmin() {
+  if (adminBooted) return;
+  adminBooted = true;
+  await Promise.allSettled([
+    renderStudents(),
+    renderInstructors(),
+    renderAdminCourses(),
+    renderOverview(),
+    renderAdminVideos(),
+    renderAdminPdfs(),
+    renderDataRecords(),
+    renderAdminLogs(),
+    renderAdminAnnouncements(),
+  ]);
+  try {
+    await ensureSeedPdfLibrary();
+    renderAdminPdfs();
+    renderAdminGate();
+  } catch (e) {
+    console.warn("Seed PDFs:", e);
+  }
+}
+
+// =====================================================================
+// ADMIN SETTINGS, NOTIFICATIONS & PROFILE PHOTO
+// =====================================================================
+function loadAdminPrefs() {
+  try {
+    const prefs = JSON.parse(localStorage.getItem("skillhub_admin_prefs") || "{}");
+    if (document.getElementById("adminNotiStudents")) document.getElementById("adminNotiStudents").checked = prefs.notiStudents !== false;
+    if (document.getElementById("adminNotiCourses")) document.getElementById("adminNotiCourses").checked = prefs.notiCourses !== false;
+    if (document.getElementById("adminNotiSecurity")) document.getElementById("adminNotiSecurity").checked = prefs.notiSecurity !== false;
+    if (document.getElementById("adminNotiSound")) document.getElementById("adminNotiSound").checked = prefs.notiSound !== false;
+    if (document.getElementById("adminAllowStudentSignups")) document.getElementById("adminAllowStudentSignups").checked = prefs.allowStudentSignups !== false;
+    if (document.getElementById("adminAllowInstructorSignups")) document.getElementById("adminAllowInstructorSignups").checked = prefs.allowInstructorSignups !== false;
+    if (document.getElementById("adminMaintenanceMode")) document.getElementById("adminMaintenanceMode").checked = !!prefs.maintenanceMode;
+  } catch (_) {}
+}
+
+function saveAdminPrefs() {
+  try {
+    const prefs = {
+      notiStudents: document.getElementById("adminNotiStudents")?.checked ?? true,
+      notiCourses: document.getElementById("adminNotiCourses")?.checked ?? true,
+      notiSecurity: document.getElementById("adminNotiSecurity")?.checked ?? true,
+      notiSound: document.getElementById("adminNotiSound")?.checked ?? true,
+      allowStudentSignups: document.getElementById("adminAllowStudentSignups")?.checked ?? true,
+      allowInstructorSignups: document.getElementById("adminAllowInstructorSignups")?.checked ?? true,
+      maintenanceMode: document.getElementById("adminMaintenanceMode")?.checked ?? false,
+    };
+    localStorage.setItem("skillhub_admin_prefs", JSON.stringify(prefs));
+  } catch (_) {}
+}
+window.saveAdminPrefs = saveAdminPrefs;
+window.loadAdminPrefs = loadAdminPrefs;
+
+function playAdminChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(587.33, now); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12); // A5
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc.start(now);
+    osc.stop(now + 0.36);
+  } catch (_) {}
+}
+
+
+// Admin Photo Upload Listener
+const adminPhotoInput = document.getElementById("adminPhotoFileInput");
+if (adminPhotoInput) {
+  adminPhotoInput.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const progress = document.getElementById("adminPhotoProgress");
+    if (progress) {
+      progress.style.display = "block";
+      progress.textContent = "⏳ Uploading photo to database & storage...";
+    }
+    try {
+      const res = await apiUploadProfilePhoto(file);
+      let newUrl = res.photoUrl;
+      if (newUrl && newUrl.startsWith("/uploads/")) newUrl = "http://localhost:5000" + newUrl;
+      const avatar = document.getElementById("adminSettingsAvatar");
+      if (avatar && newUrl) avatar.src = newUrl;
+      const headerAvatar = document.querySelector(".header-right .profile-trigger img");
+      if (headerAvatar && newUrl) headerAvatar.src = newUrl;
+      if (progress) {
+        progress.style.color = "#10b981";
+        progress.textContent = "✅ Admin profile photo updated successfully!";
+        setTimeout(() => { progress.style.display = "none"; progress.style.color = ""; }, 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      if (progress) {
+        progress.style.color = "#ef4444";
+        progress.textContent = "❌ " + (err.message || "Failed to upload photo");
+      }
+    }
+  });
+}
+
+// =====================================================================
+// OFFICIAL ANNOUNCEMENTS & STUDENT BROADCASTS
+// =====================================================================
+async function renderAdminAnnouncements() {
+  const list = document.getElementById("annList");
+  if (!list) return;
+  try {
+    let items = [];
+    try {
+      const snap = await getDocs(query(collection(db, "announcements"), orderBy("createdAt", "desc")));
+      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (fsErr) {
+      console.warn("Firestore announcements load warning, trying backend API:", fsErr);
+      items = await apiGetAnnouncements();
+    }
+
+    if (!items || !items.length) {
+      list.innerHTML = `<div style="text-align:center; padding:28px 20px; color:#64748b; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">📢 No announcements broadcasted yet. Write a message above to notify all students.</div>`;
+      return;
+    }
+    list.innerHTML = items.map((a) => {
+      const dateStr = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().toLocaleString() : (a.createdAt ? new Date(a.createdAt).toLocaleString() : "Recently");
+      return `
+        <div class="noti-card" data-ann-id="${a.id}" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #e2e8f0; padding:16px 20px; border-radius:12px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div class="noti-left" style="display:flex; gap:14px; align-items:flex-start; flex:1;">
+            <span class="noti-icon" style="font-size:24px;">📣</span>
+            <div class="noti-text" style="flex:1;">
+              <b style="font-size:15px; color:#0f172a; margin-bottom:4px; display:block;">${a.title}</b>
+              <p style="margin:0 0 6px 0; font-size:13.5px; color:#334155; line-height:1.45;">${a.body}</p>
+              <span style="font-size:12px; color:#64748b;">Target: <b style="color:#4f46e5;">${a.audience || "All Students"}</b> • ${dateStr}</span>
+            </div>
+          </div>
+          <div class="row-actions" style="margin-left:14px;">
+            <button class="btn danger small" onclick="deleteAnnouncement('${a.id}')" title="Delete notice">🗑 Delete</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    console.warn("Error loading announcements:", err);
+    list.innerHTML = `<div style="padding:14px; color:#ef4444;">Failed to load announcements from database.</div>`;
+  }
+}
+
+async function publishAnnouncement() {
+  const title = (document.getElementById("annTitle")?.value || "").trim();
+  const body = (document.getElementById("annBody")?.value || "").trim();
+  const audience = document.getElementById("annAudience")?.value || "All Students";
+  if (!title || !body) {
+    alert("Please provide both an announcement title and message content.");
+    return;
+  }
+
+  const btn = document.querySelector("#announcements .compose-box button");
+  if (btn) { btn.disabled = true; btn.textContent = "Publishing to Students..."; }
+
+  try {
+    let success = false;
+    let publishError = null;
+
+    // 1. Try Backend API first (Admin SDK bypasses all security rules)
+    try {
+      const res = await apiPublishAnnouncement({ title, body, audience });
+      if (res && (res.id || res.success)) {
+        success = true;
+      }
+    } catch (apiErr) {
+      console.warn("Backend announcement API notice, attempting Firestore direct:", apiErr);
+      publishError = apiErr;
+    }
+
+    // 2. Direct Firestore fallback
+    if (!success) {
+      try {
+        await addDoc(collection(db, "announcements"), {
+          title,
+          body,
+          audience,
+          author: "SkillHub Administration",
+          type: "admin_notice",
+          createdAt: serverTimestamp(),
+        });
+        success = true;
+      } catch (fsErr) {
+        console.error("Direct Firestore publish error:", fsErr);
+        if (!publishError) publishError = fsErr;
+      }
+    }
+
+    if (!success) {
+      throw publishError || new Error("Could not publish announcement");
+    }
+
+    document.getElementById("annTitle").value = "";
+    document.getElementById("annBody").value = "";
+    alert("📢 Announcement broadcasted successfully! It will now appear on all student dashboards.");
+    await renderAdminAnnouncements();
+  } catch (err) {
+    alert("Failed to publish announcement: " + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "📤 Publish"; }
+  }
+}
+
+async function deleteAnnouncement(annId) {
+  if (!confirm("Are you sure you want to delete this notice? It will be removed from all student feeds.")) return;
+  try {
+    try {
+      await apiDeleteAnnouncement(annId);
+    } catch (_) {
+      await deleteDoc(doc(db, "announcements", annId));
+    }
+    await renderAdminAnnouncements();
+  } catch (err) {
+    alert("Error deleting announcement: " + err.message);
+  }
+}
+
+window.publishAnnouncement = publishAnnouncement;
+window.deleteAnnouncement = deleteAnnouncement;
+window.renderAdminAnnouncements = renderAdminAnnouncements;
+
+// Expose handlers globally
+window.bootAdmin = bootAdmin;
+window.renderStudents = renderStudents;
+window.renderInstructors = renderInstructors;
+window.renderAdminCourses = renderAdminCourses;
+window.renderOverview = renderOverview;
+window.openUserDetailsById = (uid) => {
+  const u = cachedStudentsList.find((x) => x.id === uid);
+  if (u) openUserDetails(u);
+};
+
+// React to section navigation
+window.addEventListener("admin-section-changed", (e) => {
+  const sec = e.detail && e.detail.section;
+  if (sec === "students") {
+    renderStudents();
+  } else if (sec === "dash") {
+    renderOverview();
+  } else if (sec === "courses") {
+    renderAdminCourses();
+  } else if (sec === "instructors") {
+    renderInstructors();
+  } else if (sec === "data-records") {
+    renderDataRecords();
+  } else if (sec === "analytics") {
+    renderOverview(); // reloads the completion/donut charts
+  } else if (sec === "reports") {
+    // reports section renders on demand from existing data
+    renderOverview();
+  } else if (sec === "logs") {
+    renderAdminLogs();
+  } else if (sec === "announcements") {
+    renderAdminAnnouncements();
+  } else if (sec === "library") {
+    renderAdminVideos();
+    renderAdminPdfs();
+    renderAdminGate();
+  } else if (sec === "settings") {
+    // settings section is static; nothing to load
+  }
+});
+
+// If auth is already active, boot immediately
+if (auth.currentUser) {
+  bootAdmin();
+}
+</script>
+</body>
+</html>
