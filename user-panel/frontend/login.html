@@ -45,20 +45,7 @@
         Don't have an account? 
         <a href="signup.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Create Account</a>
     </div>
-    <div style="text-align: center; margin-top: 14px; font-size: 13px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-        <a href="../../admin-panel/frontend/admin-login.html" id="adminPortalLink" style="color: var(--text-muted); text-decoration: none; font-weight: 500;">
-            🛡️ Staff or Admin? <span style="color: var(--primary); font-weight: 600;">Sign in here &rarr;</span>
-        </a>
-    </div>
 </div>
-<script>
-    (function() {
-        const link = document.getElementById("adminPortalLink");
-        if (link && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-            link.href = "http://localhost:5002/admin-login.html";
-        }
-    })();
-</script>
 
 <script type="module">
 import { 
