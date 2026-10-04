@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkillHub Pro — Modern AI Learning & Administration Platform</title>
-    <meta name="description" content="Unified entry point for SkillHub Pro. Access the interactive Student Learning Portal and the Administrator SaaS Management Dashboard.">
+    <meta name="description"
+        content="Unified entry point for SkillHub Pro. Access the interactive Student Learning Portal and the Administrator SaaS Management Dashboard.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -54,7 +58,7 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.07) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.07) 0px, transparent 50%);
             background-attachment: fixed;
@@ -141,9 +145,20 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         /* Hero */
@@ -258,6 +273,7 @@
             color: var(--primary);
         }
 
+
         .card-admin .card-icon-wrap {
             background: #e0f2fe;
             color: var(--admin-accent);
@@ -272,8 +288,13 @@
             display: block;
         }
 
-        .card-student .card-tag { color: var(--primary); }
-        .card-admin .card-tag { color: var(--admin-accent); }
+        .card-student .card-tag {
+            color: var(--primary);
+        }
+
+        .card-admin .card-tag {
+            color: var(--admin-accent);
+        }
 
         .card-title {
             font-size: 24px;
@@ -311,8 +332,13 @@
             font-size: 15px;
         }
 
-        .card-student .features-list li i { color: var(--primary); }
-        .card-admin .features-list li i { color: var(--admin-accent); }
+        .card-student .features-list li i {
+            color: var(--primary);
+        }
+
+        .card-admin .features-list li i {
+            color: var(--admin-accent);
+        }
 
         .btn-launch {
             display: flex;
@@ -463,15 +489,37 @@
         }
 
         @media (max-width: 768px) {
-            .nav-container { flex-direction: column; gap: 12px; text-align: center; }
-            .hero { margin: 32px auto 24px; }
-            .portals-grid { grid-template-columns: 1fr; }
-            .tech-banner { flex-direction: column; text-align: center; }
-            .tech-info { flex-direction: column; }
-            .footer-content { flex-direction: column; text-align: center; }
+            .nav-container {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .hero {
+                margin: 32px auto 24px;
+            }
+
+            .portals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tech-info {
+                flex-direction: column;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
@@ -488,7 +536,8 @@
                     <span class="badge-live-dot"></span>
                     Firebase Cloud Connected
                 </div>
-                <a href="https://github.com/AshitChattaraj/SkillHub" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); font-size: 20px; text-decoration: none;" title="GitHub Repository">
+                <a href="https://github.com/AshitChattaraj/SkillHub" target="_blank" rel="noopener noreferrer"
+                    style="color: var(--text-muted); font-size: 20px; text-decoration: none;" title="GitHub Repository">
                     <i class="bi bi-github"></i>
                 </a>
             </div>
@@ -506,7 +555,8 @@
                 <span class="gradient-text">Two Specialized Experiences.</span>
             </h1>
             <p class="hero-desc">
-                Welcome to SkillHub Pro. Select your portal below to enter either the student learning environment or the administrative SaaS management console.
+                Welcome to SkillHub Pro. Select your portal below to enter either the student learning environment or
+                the administrative SaaS management console.
             </p>
         </section>
 
@@ -523,13 +573,16 @@
                         <span class="card-tag">Student &amp; Learner Access</span>
                         <h2 class="card-title">Student Portal</h2>
                         <p class="card-desc">
-                            Personalized learning environment featuring interactive courses, video lectures, GATE revision material, and an intelligent AI Tutor.
+                            Personalized learning environment featuring interactive courses, video lectures, GATE
+                            revision material, and an intelligent AI Tutor.
                         </p>
                         <ul class="features-list">
-                            <li><i class="bi bi-check-circle-fill"></i> Interactive Course Curriculum &amp; Video Player</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Interactive Course Curriculum &amp; Video Player
+                            </li>
                             <li><i class="bi bi-check-circle-fill"></i> Real-time AI Assistant &amp; Chat Help</li>
                             <li><i class="bi bi-check-circle-fill"></i> Downloadable GATE Notes &amp; PDF Library</li>
-                            <li><i class="bi bi-check-circle-fill"></i> Student Profile &amp; Academic Details Tracking</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Student Profile &amp; Academic Details Tracking
+                            </li>
                             <li><i class="bi bi-check-circle-fill"></i> Official Real-time Admin Announcements</li>
                         </ul>
                     </div>
@@ -558,14 +611,20 @@
                         <span class="card-tag">Staff &amp; Executive Access</span>
                         <h2 class="card-title">Administrator Portal</h2>
                         <p class="card-desc">
-                            Comprehensive management system to oversee enrolled students, curate courses, upload resources, and monitor learning analytics.
+                            Comprehensive management system to oversee enrolled students, curate courses, upload
+                            resources, and monitor learning analytics.
                         </p>
                         <ul class="features-list">
-                            <li><i class="bi bi-check-circle-fill"></i> 9-Column Student Directory with Modal Inspection</li>
-                            <li><i class="bi bi-check-circle-fill"></i> Course Catalog Creator &amp; Publishing Controls</li>
-                            <li><i class="bi bi-check-circle-fill"></i> Multi-filter Search (Branch, Year, Semester, Status)</li>
-                            <li><i class="bi bi-check-circle-fill"></i> Push Instant Broadcast Notices to Student Dashboard</li>
-                            <li><i class="bi bi-check-circle-fill"></i> Role-Based Firebase Auth &amp; Account Governance</li>
+                            <li><i class="bi bi-check-circle-fill"></i> 9-Column Student Directory with Modal Inspection
+                            </li>
+                            <li><i class="bi bi-check-circle-fill"></i> Course Catalog Creator &amp; Publishing Controls
+                            </li>
+                            <li><i class="bi bi-check-circle-fill"></i> Multi-filter Search (Branch, Year, Semester,
+                                Status)</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Push Instant Broadcast Notices to Student
+                                Dashboard</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Role-Based Firebase Auth &amp; Account
+                                Governance</li>
                         </ul>
                     </div>
 
@@ -592,7 +651,8 @@
                     <div class="tech-icon">⚡</div>
                     <div>
                         <div class="tech-title">Unified Cloud Database &amp; Instant Synchronization</div>
-                        <div class="tech-subtitle">Both user and admin experiences operate on shared Firestore Collections with live synchronization.</div>
+                        <div class="tech-subtitle">Both user and admin experiences operate on shared Firestore
+                            Collections with live synchronization.</div>
                     </div>
                 </div>
                 <div class="tech-tags">
@@ -614,10 +674,12 @@
             <div class="footer-links">
                 <a href="user-panel/frontend/index.html">Student App</a>
                 <a href="admin-panel/frontend/index.html">Admin SaaS</a>
-                <a href="https://github.com/AshitChattaraj/SkillHub" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+                <a href="https://github.com/AshitChattaraj/SkillHub" target="_blank" rel="noopener noreferrer">GitHub
+                    Repo</a>
             </div>
         </div>
     </footer>
 
 </body>
+
 </html>
